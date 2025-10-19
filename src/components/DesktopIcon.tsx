@@ -5,7 +5,7 @@ import Draggable from "./Draggable";
 interface DesktopIconProps {
   iconType:
     | "folder"
-    | "camera"
+    | "add"
     | "gallery"
     | "application"
     | "clueless"
@@ -21,7 +21,7 @@ interface DesktopIconProps {
 // Icon mapping - update these paths to match your downloaded icons
 const iconSources = {
   folder: require("../assets/icons/folder.png"),
-  camera: require("../assets/icons/camera.png"),
+  add: require("../assets/icons/add.png"),
   gallery: require("../assets/icons/gallery.png"),
   application: require("../assets/icons/application.png"),
   clueless: require("../assets/icons/application.png"), // Add your clueless icon
@@ -57,7 +57,13 @@ const DesktopIcon: React.FC<DesktopIconProps> = ({
     >
       <View style={[styles.iconContainer, isSelected && styles.selected]}>
         <View style={styles.iconWrapper}>{renderIcon()}</View>
-        <Text style={styles.label}>{label}</Text>
+        <Text
+          style={styles.label}
+          numberOfLines={2} // Limit to 2 lines
+          ellipsizeMode="tail" // Add ... if too long
+        >
+          {label}
+        </Text>
       </View>
     </Draggable>
   );
@@ -66,39 +72,41 @@ const DesktopIcon: React.FC<DesktopIconProps> = ({
 const styles = StyleSheet.create({
   iconContainer: {
     alignItems: "center",
-    padding: 12, // More padding for bigger feel
-    width: 80, // Wider for better spacing
+    padding: 8,
+    width: 80, // Fixed width for consistent layout
     borderRadius: 2,
   },
   selected: {
     backgroundColor: "rgba(0, 0, 255, 0.3)",
   },
   iconWrapper: {
-    width: 70, // Bigger icons
-    height: 70, // Bigger icons
-    marginBottom: 8,
+    width: 70,
+    height: 70,
+    marginBottom: 4, // Reduced margin
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "transparent",
   },
   iconImage: {
-    width: 70, // Larger icon size
+    width: 70, // Slightly smaller to fit better
     height: 70,
   },
   label: {
     fontFamily: "MS Sans Serif, System",
-    fontSize: 11,
+    fontSize: 10, // Smaller font for mobile
     color: "#ffffff",
     textAlign: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.1)", // Darker background for better readability
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    paddingHorizontal: 4,
+    paddingVertical: 2,
     borderRadius: 3,
     textShadowColor: "#000000",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 0,
-    // Prevent text selection
     userSelect: "none",
+    // Ensure text doesn't wrap to too many lines
+    maxWidth: 70,
+    lineHeight: 12,
   },
 });
 

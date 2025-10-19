@@ -1,6 +1,16 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Dimensions,
+} from "react-native";
 import Draggable from "./Draggable";
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const isMobile = screenWidth < 768;
 
 interface DraggableWindowProps {
   title: string;
@@ -9,18 +19,18 @@ interface DraggableWindowProps {
   onMinimize?: () => void;
   onDrag: (position: { x: number; y: number }) => void;
   initialPosition: { x: number; y: number };
-  iconType?: string; // Add icon type prop
+  iconType?: string;
 }
 
 // Icon mapping for window title bars
 const windowIconSources = {
   wardrobe: require("../assets/icons/wardrobe.png"),
   outfit: require("../assets/icons/outfit.png"),
-  camera: require("../assets/icons/camera.png"),
+  add: require("../assets/icons/add.png"),
   gallery: require("../assets/icons/gallery.png"),
   application: require("../assets/icons/application.png"),
   clueless: require("../assets/icons/application.png"),
-  folder: require("../assets/icons/folder.png"), // default
+  folder: require("../assets/icons/folder.png"),
 };
 
 const DraggableWindow: React.FC<DraggableWindowProps> = ({
@@ -39,13 +49,20 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
   return (
     <Draggable initialPosition={initialPosition} onDrag={onDrag}>
       <View style={styles.window}>
-        {/* Classic 3D Border */}
-        <View style={styles.borderOutset} />
+        {/* Classic 3D Border - Now scales properly */}
+        <View style={styles.borderContainer}>
+          <View style={styles.borderTopLeft} />
+          <View style={styles.borderTopRight} />
+          <View style={styles.borderBottomLeft} />
+          <View style={styles.borderBottomRight} />
+        </View>
 
         {/* Pink Title Bar */}
         <View style={styles.titleBar}>
           <Image source={windowIconSource} style={styles.titleIcon} />
-          <Text style={styles.titleText}>{title}</Text>
+          <Text style={styles.titleText} numberOfLines={1} ellipsizeMode="tail">
+            {title}
+          </Text>
           <View style={styles.windowControls}>
             <TouchableOpacity style={styles.controlButton} onPress={onMinimize}>
               <Text style={styles.controlText}>_</Text>
@@ -92,22 +109,54 @@ const styles = StyleSheet.create({
     borderLeftColor: "#ffffff",
     borderRightColor: "#808080",
     borderBottomColor: "#808080",
-    minWidth: 320,
-    minHeight: 240,
+    width: isMobile ? screenWidth * 0.85 : 320, // Responsive width
+    minWidth: isMobile ? 280 : 320,
+    minHeight: isMobile ? 200 : 240,
+    maxWidth: screenWidth * 0.95,
     shadowColor: "#000",
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 0,
     elevation: 8,
   },
-  borderOutset: {
-    ...StyleSheet.absoluteFillObject,
-    borderWidth: 1,
-    borderColor: "#000000",
-    top: -1,
-    left: -1,
-    right: -1,
-    bottom: -1,
+  borderContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  borderTopLeft: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 2,
+    height: 2,
+    backgroundColor: "#ffffff",
+  },
+  borderTopRight: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 2,
+    width: 2,
+    backgroundColor: "#ffffff",
+  },
+  borderBottomLeft: {
+    position: "absolute",
+    left: 0,
+    bottom: 0,
+    right: 2,
+    height: 2,
+    backgroundColor: "#808080",
+  },
+  borderBottomRight: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+    top: 2,
+    width: 2,
+    backgroundColor: "#808080",
   },
   titleBar: {
     backgroundColor: "#ff66b2",
@@ -116,12 +165,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: "#808080",
+    minHeight: 24,
   },
   titleIcon: {
     width: 16,
     height: 16,
     marginRight: 6,
     marginLeft: 4,
+    flexShrink: 0, // Prevent icon from shrinking
   },
   titleText: {
     color: "#ffffff",
@@ -133,9 +184,11 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 0,
     userSelect: "none",
+    marginRight: 4, // Add some margin so text doesn't touch controls
   },
   windowControls: {
     flexDirection: "row",
+    flexShrink: 0, // Prevent controls from shrinking
   },
   controlButton: {
     width: 18,
@@ -148,6 +201,7 @@ const styles = StyleSheet.create({
     marginLeft: 2,
     justifyContent: "center",
     alignItems: "center",
+    flexShrink: 0,
   },
   controlText: {
     color: "#000000",
@@ -163,6 +217,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderBottomWidth: 1,
     borderBottomColor: "#808080",
+    minHeight: 20,
   },
   menuItem: {
     fontSize: 11,
@@ -174,11 +229,12 @@ const styles = StyleSheet.create({
   },
   windowContent: {
     flex: 1,
+    minHeight: 120,
   },
   contentArea: {
     flex: 1,
     padding: 12,
-    minHeight: 160,
+    minHeight: 100,
   },
   statusBar: {
     flexDirection: "row",
@@ -187,6 +243,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#808080",
     alignItems: "center",
+    minHeight: 20,
   },
   statusText: {
     fontSize: 10,

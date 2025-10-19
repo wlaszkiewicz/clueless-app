@@ -12,6 +12,7 @@ import DraggableWindow from "../components/DraggableWindow";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const isMobile = screenWidth < 768;
+const isTablet = screenWidth >= 768 && screenWidth < 1024;
 
 const WindowsDesktop = () => {
   const [currentTime, setCurrentTime] = useState("");
@@ -37,52 +38,82 @@ const WindowsDesktop = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Mobile layout: icons in two rows at top
-  const mobileIconPositions = [
-    { x: 20, y: 20 }, // Row 1
-    { x: 120, y: 20 }, // Row 1
-    { x: 220, y: 20 }, // Row 1
-    { x: 20, y: 140 }, // Row 2
-    { x: 120, y: 140 }, // Row 2
-  ];
+  // Responsive icon positioning
+  const getIconPositions = () => {
+    if (isMobile) {
+      // Mobile: 3 icons in first row, 2 in second row
+      const iconWidth = 90;
+      const iconHeight = 110;
+      const horizontalSpacing = (screenWidth - 3 * iconWidth) / 4;
+      const verticalSpacing = 20;
+
+      return [
+        { x: horizontalSpacing, y: 30 }, // Row 1 - Col 1
+        { x: horizontalSpacing * 2 + iconWidth, y: 30 }, // Row 1 - Col 2
+        { x: horizontalSpacing * 3 + iconWidth * 2, y: 30 }, // Row 1 - Col 3
+        {
+          x: horizontalSpacing + iconWidth / 2,
+          y: 30 + iconHeight + verticalSpacing,
+        }, // Row 2 - Col 1
+        {
+          x: horizontalSpacing * 2 + iconWidth * 1.5,
+          y: 30 + iconHeight + verticalSpacing,
+        }, // Row 2 - Col 2
+      ];
+    } else if (isTablet) {
+      // Tablet: Icons on left with good spacing
+      return [
+        { x: 30, y: 30 },
+        { x: 30, y: 170 },
+        { x: 30, y: 310 },
+        { x: 30, y: 450 },
+        { x: 30, y: 590 },
+      ];
+    } else {
+      // Desktop: Icons on left with generous spacing
+      return [
+        { x: 30, y: 20 },
+        { x: 30, y: 150 },
+        { x: 30, y: 280 },
+        { x: 30, y: 410 },
+        { x: 30, y: 540 },
+      ];
+    }
+  };
+
+  const iconPositionsArray = getIconPositions();
 
   const desktopIcons = [
     {
       id: "wardrobe",
       iconType: "wardrobe" as const,
       label: "My Wardrobe",
-      initialX: isMobile ? mobileIconPositions[0].x : 20,
-      initialY: isMobile ? mobileIconPositions[0].y : 20,
     },
     {
       id: "outfits",
       iconType: "outfit" as const,
       label: "Create Outfit",
-      initialX: isMobile ? mobileIconPositions[1].x : 20,
-      initialY: isMobile ? mobileIconPositions[1].y : 160,
     },
     {
       id: "addItem",
-      iconType: "camera" as const,
+      iconType: "add" as const,
       label: "Add Item",
-      initialX: isMobile ? mobileIconPositions[2].x : 20,
-      initialY: isMobile ? mobileIconPositions[2].y : 300,
     },
     {
       id: "gallery",
       iconType: "gallery" as const,
       label: "Style Gallery",
-      initialX: isMobile ? mobileIconPositions[3].x : 20,
-      initialY: isMobile ? mobileIconPositions[3].y : 440,
     },
     {
       id: "clueless",
       iconType: "clueless" as const,
       label: "Clueless",
-      initialX: isMobile ? mobileIconPositions[4].x : 20,
-      initialY: isMobile ? mobileIconPositions[4].y : 580,
     },
-  ];
+  ].map((icon, index) => ({
+    ...icon,
+    initialX: iconPositionsArray[index]?.x || 40,
+    initialY: iconPositionsArray[index]?.y || 40 + index * 140,
+  }));
 
   const openWindow = (windowId: string) => {
     if (!openWindows.includes(windowId)) {
@@ -90,11 +121,18 @@ const WindowsDesktop = () => {
       setMinimizedWindows(minimizedWindows.filter((id) => id !== windowId));
 
       if (!windowPositions[windowId]) {
+        // Responsive window positioning
+        const windowIndex = openWindows.length;
+        const baseX = isMobile ? 20 : 150;
+        const baseY = isMobile ? 250 : 100;
+        const offsetX = isMobile ? 10 : 25;
+        const offsetY = isMobile ? 80 : 20; // More offset on mobile for better visibility
+
         setWindowPositions((prev) => ({
           ...prev,
           [windowId]: {
-            x: isMobile ? 50 : 150 + openWindows.length * 25,
-            y: isMobile ? 200 : 100 + openWindows.length * 20,
+            x: baseX + windowIndex * offsetX,
+            y: baseY + windowIndex * offsetY,
           },
         }));
       }
@@ -136,21 +174,26 @@ const WindowsDesktop = () => {
   const getIconPosition = (iconId: string) => {
     return (
       iconPositions[iconId] || {
-        x: desktopIcons.find((icon) => icon.id === iconId)?.initialX || 50,
-        y: desktopIcons.find((icon) => icon.id === iconId)?.initialY || 50,
+        x: desktopIcons.find((icon) => icon.id === iconId)?.initialX || 40,
+        y: desktopIcons.find((icon) => icon.id === iconId)?.initialY || 40,
       }
     );
   };
 
   const getWindowPosition = (windowId: string) => {
-    return windowPositions[windowId] || { x: 150, y: 100 };
+    return (
+      windowPositions[windowId] || {
+        x: isMobile ? 20 : 150,
+        y: isMobile ? 250 : 100,
+      }
+    );
   };
 
   // Taskbar icon sources
   const taskbarIconSources = {
     wardrobe: require("../assets/icons/wardrobe.png"),
     outfit: require("../assets/icons/outfit.png"),
-    camera: require("../assets/icons/camera.png"),
+    add: require("../assets/icons/add.png"),
     gallery: require("../assets/icons/gallery.png"),
     clueless: require("../assets/icons/application.png"),
   };
@@ -195,7 +238,7 @@ const WindowsDesktop = () => {
             );
           })}
 
-        {/* Welcome Text */}
+        {/* Welcome Text - Only show on larger screens */}
         {!isMobile && (
           <View style={styles.welcomeContainer}>
             <Text style={styles.welcomeText}>Clueless Fashion Studio</Text>
@@ -206,13 +249,12 @@ const WindowsDesktop = () => {
         )}
       </View>
 
-      {/* Taskbar */}
-      <View style={styles.taskbar}>
+      {/* Responsive Taskbar */}
+      <View style={[styles.taskbar, isMobile && styles.mobileTaskbar]}>
         <TouchableOpacity style={styles.startButton}>
-          <View style={styles.startLogo}>🎀</View>
-          <Text style={styles.startText}>Start</Text>
+          <Text style={styles.startLogo}>🎀</Text>
+          {!isMobile && <Text style={styles.startText}>Start</Text>}
         </TouchableOpacity>
-
         <View style={styles.taskbarPrograms}>
           {openWindows.map((windowId) => {
             const icon = desktopIcons.find((icon) => icon.id === windowId);
@@ -227,11 +269,18 @@ const WindowsDesktop = () => {
                 key={windowId}
                 style={[
                   styles.taskbarProgram,
+                  isMobile && styles.mobileTaskbarProgram,
                   isMinimized && styles.minimizedProgram,
                 ]}
                 onPress={() => openWindow(windowId)}
               >
-                <Image source={taskbarIconSource} style={styles.taskbarIcon} />
+                <Image
+                  source={taskbarIconSource}
+                  style={[
+                    styles.taskbarIcon,
+                    isMobile && styles.mobileTaskbarIcon,
+                  ]}
+                />
                 {!isMobile && (
                   <Text style={styles.taskbarProgramText}>{icon?.label}</Text>
                 )}
@@ -241,11 +290,13 @@ const WindowsDesktop = () => {
         </View>
 
         <View style={styles.systemTray}>
-          <View style={styles.trayIcons}>
-            <Text style={styles.trayIcon}>🔊</Text>
-            <Text style={styles.trayIcon}>📶</Text>
-          </View>
-          <View style={styles.clock}>
+          {!isMobile && (
+            <View style={styles.trayIcons}>
+              <Text style={styles.trayIcon}>🔊</Text>
+              <Text style={styles.trayIcon}>📶</Text>
+            </View>
+          )}
+          <View style={[styles.clock, isMobile && styles.mobileClock]}>
             <Text style={styles.clockText}>{currentTime}</Text>
           </View>
         </View>
@@ -268,11 +319,6 @@ const styles = StyleSheet.create({
     bottom: 120,
     right: 40,
   },
-  welcomeSubtitle: {
-    fontSize: 14,
-    color: "#34495e",
-    fontStyle: "italic",
-  },
   welcomeText: {
     fontSize: 24,
     color: "#ffffff",
@@ -280,6 +326,11 @@ const styles = StyleSheet.create({
     textShadowColor: "#000080",
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 2,
+  },
+  welcomeSubtitle: {
+    fontSize: 14,
+    color: "#34495e",
+    fontStyle: "italic",
   },
   windowText: {
     fontSize: 12,
@@ -296,6 +347,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderTopWidth: 2,
     borderTopColor: "#dfdfdf",
+    minHeight: 40, // Minimum height
+  },
+  mobileTaskbar: {
+    height: 50, // Taller on mobile for easier tapping
+    paddingHorizontal: 6,
   },
   startButton: {
     flexDirection: "row",
@@ -309,6 +365,7 @@ const styles = StyleSheet.create({
     borderRightColor: "#808080",
     borderBottomColor: "#808080",
     marginRight: 8,
+    minWidth: 60, // Minimum width
   },
   startLogo: {
     fontSize: 14,
@@ -339,6 +396,13 @@ const styles = StyleSheet.create({
     borderBottomColor: "#808080",
     marginRight: 6,
     marginBottom: 2,
+    minWidth: 60, // Minimum width
+  },
+  mobileTaskbarProgram: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    marginRight: 4,
+    minWidth: 50,
   },
   minimizedProgram: {
     opacity: 0.6,
@@ -347,6 +411,11 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     marginRight: 6,
+  },
+  mobileTaskbarIcon: {
+    width: 18,
+    height: 18,
+    marginRight: 4,
   },
   taskbarProgramText: {
     fontSize: 11,
@@ -374,11 +443,17 @@ const styles = StyleSheet.create({
     borderLeftColor: "#808080",
     borderRightColor: "#ffffff",
     borderBottomColor: "#ffffff",
+    minWidth: 70, // Minimum width
+  },
+  mobileClock: {
+    paddingHorizontal: 8,
+    minWidth: 60,
   },
   clockText: {
     fontSize: 11,
     color: "#000000",
     fontFamily: "MS Sans Serif, System",
+    textAlign: "center",
   },
 });
 

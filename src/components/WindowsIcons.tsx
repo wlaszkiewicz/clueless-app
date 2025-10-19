@@ -5,7 +5,7 @@ import { View, StyleSheet, Image } from "react-native";
 const iconSources = {
   wardrobe: require("../assets/icons/wardrobe.png"),
   outfit: require("../assets/icons/outfit.png"),
-  camera: require("../assets/icons/camera.png"),
+  add: require("../assets/icons/add.png"),
   gallery: require("../assets/icons/gallery.png"),
   application: require("../assets/icons/application.png"),
   clueless: require("../assets/icons/application.png"),
@@ -24,9 +24,9 @@ export const OutfitIcon = () => (
   </View>
 );
 
-export const CameraIcon = () => (
+export const AddIcon = () => (
   <View style={styles.iconContainer}>
-    <Image source={iconSources.camera} style={styles.iconImage} />
+    <Image source={iconSources.add} style={styles.iconImage} />
   </View>
 );
 
@@ -53,7 +53,7 @@ export const getIconByType = (iconType: string) => {
   const iconMap = {
     wardrobe: WardrobeIcon,
     outfit: OutfitIcon,
-    camera: CameraIcon,
+    add: AddIcon,
     gallery: GalleryIcon,
     application: ApplicationIcon,
     clueless: CluelessIcon,
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 
 export default {
   WardrobeIcon,
-  CameraIcon,
+  AddIcon,
   GalleryIcon,
   ApplicationIcon,
   OutfitIcon,
