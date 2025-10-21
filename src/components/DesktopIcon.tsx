@@ -10,7 +10,8 @@ interface DesktopIconProps {
     | "application"
     | "clueless"
     | "wardrobe"
-    | "outfit";
+    | "outfit"
+    | "dressMe";
   label: string;
   onDoubleClick: () => void;
   onDrag: (position: { x: number; y: number }) => void;
@@ -19,14 +20,16 @@ interface DesktopIconProps {
 }
 
 // Icon mapping - update these paths to match your downloaded icons
+// Add to your iconSources in DesktopIcon component
 const iconSources = {
   folder: require("../assets/icons/folder.png"),
   add: require("../assets/icons/add.png"),
   gallery: require("../assets/icons/gallery.png"),
   application: require("../assets/icons/application.png"),
-  clueless: require("../assets/icons/application.png"), // Add your clueless icon
-  wardrobe: require("../assets/icons/wardrobe.png"), // Add your wardrobe icon
+  clueless: require("../assets/icons/clueless.png"),
+  wardrobe: require("../assets/icons/wardrobe.png"),
   outfit: require("../assets/icons/outfit.png"),
+  dressMe: require("../assets/icons/dressMe.png"), // Add this
 };
 
 const DesktopIcon: React.FC<DesktopIconProps> = ({
@@ -82,7 +85,7 @@ const styles = StyleSheet.create({
   iconWrapper: {
     width: 70,
     height: 70,
-    marginBottom: 4, // Reduced margin
+    marginBottom: 2, // Reduced margin
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "transparent",
@@ -93,7 +96,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: "MS Sans Serif, System",
-    fontSize: 10, // Smaller font for mobile
+    fontSize: 12, // Smaller font for mobile
     color: "#ffffff",
     textAlign: "center",
     backgroundColor: "rgba(0, 0, 0, 0.2)",

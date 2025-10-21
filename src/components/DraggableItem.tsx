@@ -1,36 +1,63 @@
-import React, { useState } from "react";
-import { View, PanResponder, StyleSheet } from "react-native";
+import React, { useState, useRef } from "react";
+import {
+  PanResponder,
+  View,
+  StyleSheet,
+  GestureResponderEvent,
+} from "react-native";
 
 interface DraggableItemProps {
   children: React.ReactNode;
-  onDrag: (position: { x: number; y: number }) => void;
-  initialPosition?: { x: number; y: number };
+  onDragStart?: () => void;
+  onDragEnd?: (position: { x: number; y: number }) => void;
 }
 
 const DraggableItem: React.FC<DraggableItemProps> = ({
   children,
-  onDrag,
-  initialPosition = { x: 0, y: 0 },
+  onDragStart,
+  onDragEnd,
 }) => {
-  const [position, setPosition] = useState(initialPosition);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const viewRef = useRef<View>(null);
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
-    onPanResponderMove: (_, gestureState) => {
+    onMoveShouldSetPanResponder: () => true,
+
+    onPanResponderGrant: (evt, gestureState) => {
+      onDragStart?.();
+      // Stop propagation to prevent window from dragging
+      evt.stopPropagation();
+    },
+
+    onPanResponderMove: (evt, gestureState) => {
+      // Stop propagation to prevent window from dragging
+      evt.stopPropagation();
+
       const newPosition = {
-        x: initialPosition.x + gestureState.dx,
-        y: initialPosition.y + gestureState.dy,
+        x: gestureState.dx,
+        y: gestureState.dy,
       };
       setPosition(newPosition);
-      onDrag(newPosition);
+    },
+
+    onPanResponderRelease: (evt, gestureState) => {
+      // Stop propagation to prevent window from dragging
+      evt.stopPropagation();
+
+      onDragEnd?.(position);
+      setPosition({ x: 0, y: 0 }); // Reset position
     },
   });
 
   return (
     <View
+      ref={viewRef}
       style={[
         styles.draggable,
-        { transform: [{ translateX: position.x }, { translateY: position.y }] },
+        {
+          transform: [{ translateX: position.x }, { translateY: position.y }],
+        },
       ]}
       {...panResponder.panHandlers}
     >
@@ -41,7 +68,8 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
 
 const styles = StyleSheet.create({
   draggable: {
-    position: "absolute",
+    // position: 'absolute', // Don't use absolute positioning
+    zIndex: 1000, // Make sure dragged items appear on top
   },
 });
 

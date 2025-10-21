@@ -6,6 +6,7 @@ interface DraggableProps {
   initialPosition?: { x: number; y: number };
   onDrag?: (position: { x: number; y: number }) => void;
   onDoubleClick?: () => void;
+  disableContentDrag?: boolean;
 }
 
 const Draggable: React.FC<DraggableProps> = ({
@@ -13,6 +14,7 @@ const Draggable: React.FC<DraggableProps> = ({
   initialPosition = { x: 0, y: 0 },
   onDrag,
   onDoubleClick,
+  disableContentDrag = false,
 }) => {
   const [position, setPosition] = useState(initialPosition);
   const viewRef = useRef<View>(null);
@@ -37,7 +39,14 @@ const Draggable: React.FC<DraggableProps> = ({
   };
 
   const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponder: (evt, gestureState) => {
+      // Only allow dragging from title bar if disableContentDrag is true
+      if (disableContentDrag) {
+        // Check if the touch is in the title bar area (first 30 pixels from top)
+        return gestureState.y0 < 30;
+      }
+      return true;
+    },
     onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: () => {
       isDraggingRef.current = false;
