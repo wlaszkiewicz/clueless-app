@@ -79,7 +79,6 @@ SOME FEATURES DONT WORK ON MOBILE AND THERES A LOT OF BUGS OKAY BUT ONE DAY IT W
 
 ### Installation
 ```bash
-# Clone and setup
 git clone https://github.com/wlaszkiewicz/clueless-app.git
 cd clueless-app
 npm install
