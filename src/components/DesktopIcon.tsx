@@ -19,8 +19,6 @@ interface DesktopIconProps {
   isSelected?: boolean;
 }
 
-// Icon mapping - update these paths to match your downloaded icons
-// Add to your iconSources in DesktopIcon component
 const iconSources = {
   folder: require("../assets/icons/folder.png"),
   add: require("../assets/icons/add.png"),
@@ -29,7 +27,7 @@ const iconSources = {
   clueless: require("../assets/icons/clueless.png"),
   wardrobe: require("../assets/icons/wardrobe.png"),
   outfit: require("../assets/icons/outfit.png"),
-  dressMe: require("../assets/icons/dressMe.png"), // Add this
+  dressMe: require("../assets/icons/dressMe.png"),
 };
 
 const DesktopIcon: React.FC<DesktopIconProps> = ({
@@ -60,11 +58,7 @@ const DesktopIcon: React.FC<DesktopIconProps> = ({
     >
       <View style={[styles.iconContainer, isSelected && styles.selected]}>
         <View style={styles.iconWrapper}>{renderIcon()}</View>
-        <Text
-          style={styles.label}
-          numberOfLines={2} // Limit to 2 lines
-          ellipsizeMode="tail" // Add ... if too long
-        >
+        <Text style={styles.label} numberOfLines={2} ellipsizeMode="tail">
           {label}
         </Text>
       </View>
@@ -76,7 +70,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: "center",
     padding: 8,
-    width: 80, // Fixed width for consistent layout
+    width: 80,
     borderRadius: 2,
   },
   selected: {
@@ -85,18 +79,18 @@ const styles = StyleSheet.create({
   iconWrapper: {
     width: 70,
     height: 70,
-    marginBottom: 2, // Reduced margin
+    marginBottom: 2,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "transparent",
   },
   iconImage: {
-    width: 70, // Slightly smaller to fit better
+    width: 70,
     height: 70,
   },
   label: {
     fontFamily: "MS Sans Serif, System",
-    fontSize: 12, // Smaller font for mobile
+    fontSize: 12,
     color: "#ffffff",
     textAlign: "center",
     backgroundColor: "rgba(0, 0, 0, 0.2)",
@@ -107,7 +101,6 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 0,
     userSelect: "none",
-    // Ensure text doesn't wrap to too many lines
     maxWidth: 70,
     lineHeight: 12,
   },

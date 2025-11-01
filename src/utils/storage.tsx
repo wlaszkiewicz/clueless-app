@@ -8,10 +8,9 @@ export interface WardrobeItem {
   tags: string[];
   createdAt: string;
   hasBackgroundRemoved?: boolean;
-  // NEW: Placement properties
   placedIn?: string; // 'wardrobe', 'hanger', 'shoeShelf', 'jewelryBox', 'floor'
-  position?: { x: number; y: number }; // Specific position inside the container
-  isVisible?: boolean; // Whether it's "inside" or "visible"
+  position?: { x: number; y: number };
+  isVisible?: boolean;
   customSize?: { width: number; height: number };
 }
 
@@ -23,7 +22,7 @@ export interface Outfit {
   items: OutfitItem[];
   backgroundColor: string;
   createdAt: string;
-  thumbnailUri?: string;
+  category?: string;
 }
 
 export interface OutfitItem {
@@ -35,7 +34,6 @@ export interface OutfitItem {
 class WardrobeStorage {
   private readonly STORAGE_KEY = "clueless_wardrobe";
 
-  // Save a single item
   async saveItem(item: WardrobeItem): Promise<void> {
     try {
       console.log("💾 Saving item:", item.name);
@@ -49,7 +47,6 @@ class WardrobeStorage {
     }
   }
 
-  // Get all items
   async getItems(): Promise<WardrobeItem[]> {
     try {
       const data = await AsyncStorage.getItem(this.STORAGE_KEY);
@@ -62,7 +59,6 @@ class WardrobeStorage {
     }
   }
 
-  // Delete an item
   async deleteItem(itemId: string): Promise<void> {
     try {
       const existing = await this.getItems();
@@ -75,7 +71,6 @@ class WardrobeStorage {
     }
   }
 
-  // Update an item's category (for drag & drop)
   async updateItemCategory(itemId: string, category: string): Promise<void> {
     try {
       const existing = await this.getItems();
@@ -90,7 +85,6 @@ class WardrobeStorage {
     }
   }
 
-  // Update multiple items at once
   async updateItems(items: WardrobeItem[]): Promise<void> {
     try {
       await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(items));
@@ -101,7 +95,6 @@ class WardrobeStorage {
     }
   }
 
-  // Clear all data (for testing)
   async clearAll(): Promise<void> {
     try {
       await AsyncStorage.removeItem(this.STORAGE_KEY);
@@ -112,7 +105,6 @@ class WardrobeStorage {
     }
   }
 
-  // Get storage info (for debugging)
   async getStorageInfo(): Promise<{ count: number; size: number }> {
     try {
       const data = await AsyncStorage.getItem(this.STORAGE_KEY);

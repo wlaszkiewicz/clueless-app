@@ -55,7 +55,6 @@ export const WardrobeProvider: React.FC<{ children: React.ReactNode }> = ({
       item.id === id ? { ...item, ...updates } : item
     );
     setItems(updatedItems);
-    // Note: You'd need to implement update in storage too
   };
 
   return (

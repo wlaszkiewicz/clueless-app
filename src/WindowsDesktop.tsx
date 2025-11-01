@@ -49,12 +49,10 @@ const WindowsDesktop = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Toggle Programs submenu
   const toggleProgramsMenu = () => {
     setShowProgramsMenu(!showProgramsMenu);
   };
 
-  // Close both menus when clicking outside or opening a window
   const closeAllMenus = () => {
     setShowStartMenu(false);
     setShowProgramsMenu(false);
@@ -71,11 +69,11 @@ const WindowsDesktop = () => {
         { x: horizontalSpacing, y: 30 }, // Row 1 - Col 1
         { x: horizontalSpacing * 2 + iconWidth, y: 30 }, // Row 1 - Col 2
         { x: horizontalSpacing * 3 + iconWidth * 2, y: 30 }, // Row 1 - Col 3
-        { x: horizontalSpacing, y: 30 + iconHeight + verticalSpacing }, // Row 2 - Col 1 (FIXED: start from left)
+        { x: horizontalSpacing, y: 30 + iconHeight + verticalSpacing }, // Row 2 - Col 1
         {
           x: horizontalSpacing * 2 + iconWidth,
           y: 30 + iconHeight + verticalSpacing,
-        }, // Row 2 - Col 2
+        },
       ];
     } else if (isTablet) {
       return [
@@ -86,7 +84,6 @@ const WindowsDesktop = () => {
         { x: 30, y: 550 },
       ];
     } else {
-      // Desktop: Larger spacing for bigger screens
       return [
         { x: 40, y: 30 },
         { x: 40, y: 150 },
@@ -99,7 +96,6 @@ const WindowsDesktop = () => {
 
   const iconPositionsArray = getIconPositions();
 
-  // Updated desktop icons with "Dress Me" functionality
   const desktopIcons = [
     {
       id: "wardrobe",
@@ -132,7 +128,6 @@ const WindowsDesktop = () => {
     initialY: iconPositionsArray[index]?.y || 40 + index * 140,
   }));
 
-  // Start menu categories and items
   const startMenuCategories = [
     {
       id: "programs",
@@ -190,14 +185,13 @@ const WindowsDesktop = () => {
     if (!openWindows.includes(windowId)) {
       setOpenWindows([...openWindows, windowId]);
       setMinimizedWindows(minimizedWindows.filter((id) => id !== windowId));
-      setFocusedWindow(windowId); // Focus the new window
+      setFocusedWindow(windowId);
       closeAllMenus();
 
       if (!windowPositions[windowId]) {
         const windowCount = openWindows.length;
 
         if (isMobile) {
-          // Mobile: Start from bottom of icons area, cascade slightly
           const iconBottom =
             Math.max(
               ...desktopIcons.map((icon) => getIconPosition(icon.id).y)
@@ -214,7 +208,6 @@ const WindowsDesktop = () => {
             },
           }));
         } else {
-          // Desktop: Classic cascade effect
           const baseX = 300;
           const baseY = 70;
           const offset = 30;
@@ -230,10 +223,10 @@ const WindowsDesktop = () => {
       }
     } else if (minimizedWindows.includes(windowId)) {
       setMinimizedWindows(minimizedWindows.filter((id) => id !== windowId));
-      setFocusedWindow(windowId); // Focus when restoring
+      setFocusedWindow(windowId);
       closeAllMenus();
     } else {
-      setFocusedWindow(windowId); // Focus when clicking already open window
+      setFocusedWindow(windowId);
     }
   };
 
@@ -245,7 +238,6 @@ const WindowsDesktop = () => {
     setOpenWindows(openWindows.filter((id) => id !== windowId));
     setMinimizedWindows(minimizedWindows.filter((id) => id !== windowId));
     if (focusedWindow === windowId) {
-      // Focus the next window in stack, or null if none left
       const remainingWindows = openWindows.filter((id) => id !== windowId);
       setFocusedWindow(
         remainingWindows.length > 0
@@ -291,12 +283,11 @@ const WindowsDesktop = () => {
     return (
       windowPositions[windowId] || {
         x: isMobile ? 20 : 300,
-        y: isMobile ? 280 : 70,
+        y: isMobile ? 280 : 100,
       }
     );
   };
 
-  // Updated taskbar icon sources
   const taskbarIconSources = {
     wardrobe: require("./assets/icons/wardrobe.png"),
     outfit: require("./assets/icons/outfit.png"),
@@ -314,13 +305,11 @@ const WindowsDesktop = () => {
   };
 
   const handleShutDown = () => {
-    // Add your shutdown logic here
     console.log("Shutting down...");
     closeAllMenus();
   };
 
   const handleChangeWallpaper = () => {
-    // Add wallpaper change logic here
     console.log("Changing wallpaper...");
     closeAllMenus();
   };
@@ -355,7 +344,7 @@ const WindowsDesktop = () => {
           <AddItemWindow
             isFullscreen={isFullscreen}
             isMobile={isMobile}
-            onItemAdded={refreshWardrobe} // Pass the refresh function
+            onItemAdded={refreshWardrobe}
           />
         );
       case "wardrobe":
@@ -363,7 +352,7 @@ const WindowsDesktop = () => {
           <WardrobeWindow
             isFullscreen={isFullscreen}
             isMobile={isMobile}
-            key={wardrobeRefreshTrigger} // Force re-render when refresh triggered
+            key={wardrobeRefreshTrigger}
           />
         );
       case "gallery":
@@ -390,19 +379,16 @@ const WindowsDesktop = () => {
 
   return (
     <View style={styles.container}>
-      {/* Light Blue Desktop Background */}
       <View style={styles.desktop}>
-        {/* Your Clueless Logo Image (replaces the welcome text) */}
         {!isMobile && (
           <View style={styles.logoContainer}>
             <Image
-              source={require("./assets/clueless-logo.png")} // Your custom logo
+              source={require("./assets/clueless-logo.png")}
               style={styles.logoImage}
               resizeMode="contain"
             />
           </View>
         )}
-        {/* Draggable Desktop Icons */}
         {desktopIcons.map((icon) => (
           <DesktopIcon
             key={icon.id}
@@ -417,26 +403,27 @@ const WindowsDesktop = () => {
           .filter((windowId) => !minimizedWindows.includes(windowId))
           .map((windowId) => {
             const icon = desktopIcons.find((icon) => icon.id === windowId);
-            // Define different sizes for different windows on desktop
             let desktopWidth = 600;
             let desktopHeight = 500;
 
-            // Custom sizes for specific windows
             if (windowId === "wardrobe") {
               desktopWidth = 700;
               desktopHeight = 600;
             } else if (windowId === "outfits") {
-              desktopWidth = 1000; // Larger for drag & drop
-              desktopHeight = 800;
+              desktopWidth = 1000;
+              desktopHeight = 700;
             } else if (windowId === "gallery") {
-              desktopWidth = 950;
-              desktopHeight = 780;
+              desktopWidth = 650;
+              desktopHeight = 700;
             } else if (windowId === "dressMe") {
               desktopWidth = 650;
-              desktopHeight = 600;
+              desktopHeight = 700;
             } else if (windowId === "addItem") {
               desktopWidth = 600;
               desktopHeight = 700;
+            } else if (windowId === "clueless") {
+              desktopWidth = 600;
+              desktopHeight = 600;
             }
             return (
               <DraggableWindow
@@ -451,8 +438,8 @@ const WindowsDesktop = () => {
                 }
                 onFocus={() => focusWindow(windowId)}
                 onDrag={(position) => handleWindowDrag(windowId, position)}
-                width={isMobile ? screenWidth * 0.9 : desktopWidth} // ⬅️ Use custom sizes
-                height={isMobile ? 300 : desktopHeight} // ⬅️ Use custom sizes
+                width={isMobile ? screenWidth * 0.9 : desktopWidth}
+                height={isMobile ? 300 : desktopHeight}
                 isFocused={focusedWindow === windowId}
                 isMobile={isMobile}
               >
@@ -460,7 +447,6 @@ const WindowsDesktop = () => {
               </DraggableWindow>
             );
           })}
-        {/* Start Menu */}
         {showStartMenu && (
           <View style={[styles.startMenu, isMobile && styles.mobileStartMenu]}>
             <View style={styles.startMenuHeader}>
@@ -472,7 +458,6 @@ const WindowsDesktop = () => {
             </View>
 
             <View style={styles.startMenuContent}>
-              {/* Main Menu Items */}
               <View style={styles.mainMenu}>
                 {startMenuCategories.map((category) => (
                   <TouchableOpacity
@@ -482,7 +467,6 @@ const WindowsDesktop = () => {
                       if (category.hasSubmenu) {
                         toggleProgramsMenu();
                       } else {
-                        // Handle other menu items
                         closeAllMenus();
                       }
                     }}
@@ -504,10 +488,8 @@ const WindowsDesktop = () => {
               </View>
             </View>
 
-            {/* Separator Line */}
             <View style={styles.menuSeparator} />
 
-            {/* Footer Items */}
             <View style={styles.startMenuFooter}>
               {startMenuFooterItems.map((item) => (
                 <TouchableOpacity
@@ -535,7 +517,6 @@ const WindowsDesktop = () => {
             </View>
           </View>
         )}
-        {/* Programs Submenu - Now positioned next to Start Menu without title */}
         {showProgramsMenu && (
           <View
             style={[
@@ -574,7 +555,6 @@ const WindowsDesktop = () => {
           style={styles.startButton}
           onPress={() => {
             setShowStartMenu(!showStartMenu);
-            // Close programs menu when start menu is toggled
             if (showProgramsMenu) {
               setShowProgramsMenu(false);
             }
@@ -650,12 +630,11 @@ const WindowsDesktop = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#87ceeb", // Light blue background
+    backgroundColor: "#87ceeb",
   },
   desktop: {
     flex: 1,
   },
-  // Logo container for your Clueless image
   logoContainer: {
     position: "absolute",
     bottom: 120,
@@ -667,12 +646,11 @@ const styles = StyleSheet.create({
     width: 250,
     height: 100,
   },
-  // Start Menu Styles
   startMenu: {
     position: "absolute",
     bottom: 0,
     left: 0,
-    width: 320,
+    width: 260,
     backgroundColor: "#c0c0c0",
     borderWidth: 2,
     borderColor: "#dfdfdf",
@@ -683,14 +661,14 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   mobileStartMenu: {
-    width: 280,
+    width: 240,
     bottom: 0,
   },
   startMenuHeader: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: "#32328AFF",
+    backgroundColor: "#D94389FF",
   },
   startMenuLogo: {
     width: 32,
@@ -734,11 +712,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 8,
   },
-  // Programs Submenu - Now positioned next to Start Menu without title
   programsSubmenu: {
     position: "absolute",
-    bottom: 100, // Aligned with start menu bottom
-    left: 320, // Position to the right of the start menu
+    bottom: 100,
+    left: 260,
     width: 200,
     backgroundColor: "#c0c0c0",
     borderWidth: 2,
@@ -747,12 +724,11 @@ const styles = StyleSheet.create({
     borderLeftColor: "#ffffff",
     borderRightColor: "#808080",
     borderBottomColor: "#808080",
-    zIndex: 1001, // Higher than start menu
+    zIndex: 1001,
   },
   mobileProgramsSubmenu: {
-    left: 280, // Position to the right of mobile start menu
-    bottom: 40,
-    width: 180,
+    left: 240,
+    width: 150,
   },
   submenuItems: {
     padding: 8,
@@ -799,7 +775,6 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontFamily: "MS Sans Serif, System",
   },
-  // Taskbar Styles
   taskbar: {
     height: isMobile ? 70 : 40,
     backgroundColor: "#c0c0c0",
@@ -809,7 +784,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 2,
     borderTopColor: "#dfdfdf",
     minHeight: 40,
-    paddingBottom: isMobile ? 15 : 0, // Prevents accidental app close
+    paddingBottom: isMobile ? 15 : 0,
   },
   mobileTaskbar: {
     height: 60,
@@ -874,10 +849,10 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   taskbarIcon: {
-    width: isMobile ? 22 : 20, // Larger icons on mobile
+    width: isMobile ? 22 : 20,
     height: 24,
     marginRight: isMobile ? 0 : 7,
-    marginBottom: 2, // Small space between icon and text
+    marginBottom: 2,
   },
   mobileTaskbarIcon: {
     width: 18,

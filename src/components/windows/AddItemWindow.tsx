@@ -32,12 +32,10 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
 
-  // Refs for web camera
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const cameraContainerRef = useRef<View>(null);
 
-  // FIXED: Web-compatible error handling
   const showError = (message: string) => {
     setErrorMessage(message);
     setTimeout(() => setErrorMessage(null), 3000);
@@ -48,7 +46,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
-  // FIXED: Clean up camera when component unmounts or camera closes
   useEffect(() => {
     return () => {
       if (streamRef.current) {
@@ -57,7 +54,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     };
   }, []);
 
-  // FIXED: Proper web camera implementation with working preview
   const startCamera = async () => {
     if (Platform.OS !== "web") {
       takePhotoNative();
@@ -65,7 +61,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     }
 
     try {
-      // Request camera access for web
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "environment",
@@ -77,7 +72,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
       streamRef.current = mediaStream;
       setShowCamera(true);
 
-      // Wait for the next render to ensure camera container is available
       setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
@@ -234,7 +228,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
 
       showSuccess(`"${newItem.name}" added to your wardrobe!`);
 
-      // Reset form
       setSelectedImage(null);
       setSelectedCategory("tops");
       setItemName("");
@@ -250,7 +243,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     }
   };
 
-  // FIXED: Category data with icon paths
   const categories = [
     { id: "tops", label: "Tops", icon: require("../../assets/icons/tops.png") },
     {
@@ -280,20 +272,12 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     },
   ];
 
-  // NEW: Background removal service
-
   const [isRemovingBackground, setIsRemovingBackground] = useState(false);
   const [hasBackgroundRemoved, setHasBackgroundRemoved] = useState(false);
 
-  // Add this function to your component
   const removeBackground = async () => {
     if (!selectedImage) {
       showError("Please select an image first");
-      return;
-    }
-
-    if (Platform.OS !== "web") {
-      showError("Background removal only available on web");
       return;
     }
 
@@ -316,7 +300,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     }
   };
 
-  // CREATE: Add Icon as View (Plus sign)
   const AddIcon = () => (
     <View style={iconStyles.addIcon}>
       <View style={iconStyles.addHorizontal} />
@@ -331,7 +314,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     </View>
   );
 
-  // Mobile preview content
   const mobilePreviewContent = (
     <View style={windowStyles.previewContent}>
       <Image
@@ -350,9 +332,7 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     </View>
   );
 
-  // FIXED: Web Camera Preview Component with proper video element
   const WebCameraPreview = () => {
-    // This useEffect ensures the video element gets the stream after render
     useEffect(() => {
       if (videoRef.current && streamRef.current) {
         videoRef.current.srcObject = streamRef.current;
@@ -365,7 +345,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
         <View style={windowStyles.cameraContainer}>
           <Text style={windowStyles.cameraTitle}>Take a Photo</Text>
           <View style={windowStyles.cameraPreview}>
-            {/* FIXED: Direct video element in the render */}
             <video
               ref={videoRef}
               autoPlay
@@ -403,10 +382,8 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
         Add clothing to your digital wardrobe
       </Text>
 
-      {/* Web Camera Overlay */}
       {showCamera && Platform.OS === "web" && <WebCameraPreview />}
 
-      {/* Image Preview - REDESIGNED */}
       {selectedImage && (
         <View style={windowStyles.imagePreview}>
           <Image
@@ -435,7 +412,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
         </View>
       )}
 
-      {/* Upload Options - REDESIGNED */}
       <View style={windowStyles.uploadSection}>
         <View style={windowStyles.uploadOptions}>
           <TouchableOpacity
@@ -476,7 +452,7 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
         </View>
       </View> */}
 
-      {/* Category Selection - REDESIGNED */}
+      {/* Category Selection  */}
       <View style={windowStyles.formSection}>
         <Text style={windowStyles.sectionTitle}>Category</Text>
         <View style={windowStyles.categoryGrid}>
@@ -504,9 +480,7 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
         </View>
       </View>
 
-      {/* Tip Box and Background Removal - Side by Side */}
       <View style={windowStyles.tipAndBgRemoveRow}>
-        {/* Tip Box - REDESIGNED */}
         <View style={windowStyles.tipBox}>
           <View style={windowStyles.tipContent}>
             <Text style={windowStyles.tipTitle}>Pro Tip</Text>
@@ -546,7 +520,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
         )}
       </View>
 
-      {/* Action Buttons - REDESIGNED */}
       <View style={windowStyles.actionBar}>
         <TouchableOpacity
           style={[
@@ -573,9 +546,7 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
   return isMobile && !isFullscreen ? mobilePreviewContent : fullContent;
 };
 
-// CREATE: Icon Styles for Add and Close icons
 const iconStyles = StyleSheet.create({
-  // Add Icon (Plus sign)
   addIcon: {
     width: 16,
     height: 16,
@@ -620,7 +591,6 @@ const iconStyles = StyleSheet.create({
   },
 });
 
-// COMPLETELY REDESIGNED STYLES - Windows 95 aesthetic
 const windowStyles = StyleSheet.create({
   previewContent: {
     flex: 1,
@@ -842,8 +812,6 @@ const windowStyles = StyleSheet.create({
     fontFamily: "MS Sans Serif, System",
   },
 
-  // Tip Box - REDESIGNED
-
   tipIcon: {
     width: 16,
     height: 16,
@@ -866,7 +834,6 @@ const windowStyles = StyleSheet.create({
     lineHeight: 12,
     fontFamily: "MS Sans Serif, System",
   },
-  // Action Bar - REDESIGNED
   actionBar: {
     marginTop: "auto",
   },
@@ -894,7 +861,6 @@ const windowStyles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "MS Sans Serif, System",
   },
-  // NEW: Web Camera Styles
   cameraOverlay: {
     position: "absolute",
     top: 0,
@@ -964,14 +930,13 @@ const windowStyles = StyleSheet.create({
     marginBottom: 20,
   },
   tipBox: {
-    flex: 1, // Take up available space
+    flex: 1,
     backgroundColor: "#ffffcc",
     borderWidth: 1,
     borderColor: "#000",
     padding: 12,
-    minHeight: 60, // Ensure minimum height
+    minHeight: 60,
   },
-  // Update the bgRemoveButton styles:
   bgRemoveButton: {
     backgroundColor: "#c0c0c0",
     paddingHorizontal: 12,
@@ -982,17 +947,17 @@ const windowStyles = StyleSheet.create({
     borderLeftColor: "#ffffff",
     borderRightColor: "#808080",
     borderBottomColor: "#808080",
-    minWidth: 100, // Can be smaller now
+    minWidth: 100,
     flexShrink: 0,
   },
   bgRemoveContent: {
-    alignItems: "center", // Center icon and text
+    alignItems: "center",
     justifyContent: "center",
   },
   bgRemoveIcon: {
     width: 40,
     height: 40,
-    marginBottom: 4, // Space between icon and text
+    marginBottom: 4,
   },
   bgRemoveText: {
     color: "#000",

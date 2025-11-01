@@ -7,6 +7,7 @@ import {
   Image,
   Dimensions,
   Modal,
+  LayoutRectangle,
 } from "react-native";
 import { wardrobeStorage, WardrobeItem } from "../../utils/storage";
 import Draggable from "./../Draggable";
@@ -47,43 +48,35 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
-  // FIXED: Room-level bounds for true free movement
   const [roomBounds, setRoomBounds] = useState({
-    width: 650, // Default, will be measured
-    height: 400,
+    width: isMobile ? screenWidth - 32 : 650,
+    height: isMobile ? 500 : 400,
   });
+
   const [containerBounds, setContainerBounds] = useState<{
     [key: string]: { width: number; height: number };
   }>({
-    wardrobe: { width: 300, height: 350 },
-    shoeShelf: { width: 250, height: 200 },
-    jewelryBox: { width: 200, height: 150 },
-    hanger: { width: 280, height: 300 },
+    wardrobe: { width: isMobile ? 280 : 300, height: isMobile ? 320 : 350 },
+    shoeShelf: { width: isMobile ? 220 : 250, height: isMobile ? 180 : 200 },
+    jewelryBox: { width: isMobile ? 180 : 200, height: isMobile ? 130 : 150 },
+    hanger: { width: isMobile ? 250 : 280, height: isMobile ? 280 : 300 },
   });
+
+  const [floorOffset, setFloorOffset] = useState({ x: 0, y: 0 });
+  const [furnitureRowOffset, setFurnitureRowOffset] = useState({ x: 0, y: 0 });
+
+  const [isLayoutMeasured, setIsLayoutMeasured] = useState(false);
 
   // Refs
   const roomLayoutRef = useRef<View>(null);
   const floorAreaRef = useRef<View>(null);
-  const wardrobeRef = useRef<View>(null);
-  const jewelryBoxRef = useRef<View>(null);
-  const hangerRef = useRef<View>(null);
-  const shoeShelfRef = useRef<View>(null);
-
-  // Furniture interior refs
-  const wardrobeInteriorRef = useRef<View>(null);
-  const shoeRackInteriorRef = useRef<View>(null);
-  const jewelryBoxInteriorRef = useRef<View>(null);
-  const hangerInteriorRef = useRef<View>(null);
-
-  // FIXED: Track floor offset for proper positioning
-  const [floorOffset, setFloorOffset] = useState({ x: 0, y: 0 });
+  const furnitureRowRef = useRef<View>(null);
 
   useEffect(() => {
-    loadWardrobeItems();
     setTimeout(() => {
-      measureAllBounds();
-    }, 300);
-  }, [currentView]);
+      loadWardrobeItems();
+    }, 200);
+  }, [currentView, isLayoutMeasured, JSON.stringify(floorOffset)]);
 
   useEffect(() => {
     if (!currentView) {
@@ -91,94 +84,62 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
     }
   }, [currentView]);
 
-  // FIXED: Proper room-level measurement
-  const measureAllBounds = () => {
-    setTimeout(() => {
-      // Measure the entire room layout first
-      if (roomLayoutRef.current) {
-        roomLayoutRef.current.measure((x, y, width, height) => {
-          console.log("📐 Room Layout:", { width, height });
-          if (width > 0 && height > 0) {
-            setRoomBounds({ width, height });
-          }
-        });
-      }
+  const handleRoomLayout = (e: any) => {
+    const { width, height } = e.nativeEvent.layout;
+    console.log("📐 Room Layout:", { width, height });
+    setRoomBounds({ width, height });
+  };
 
-      // Measure floor area position relative to room
-      if (floorAreaRef.current && roomLayoutRef.current) {
-        floorAreaRef.current.measure((fx, fy, fw, fh, fpx, fpy) => {
-          roomLayoutRef.current?.measure((rx, ry, rw, rh, rpx, rpy) => {
-            const relativeX = fpx - rpx;
-            const relativeY = fpy - rpy;
-            setFloorOffset({ x: relativeX, y: relativeY });
-            console.log("📐 Floor Offset:", { x: relativeX, y: relativeY });
-          });
-        });
-      }
+  const handleFloorLayout = (e: any) => {
+    const { x, y } = e.nativeEvent.layout;
+    console.log("📐 Floor Offset:", { x, y });
+    setFloorOffset({ x, y });
+    setIsLayoutMeasured(true);
+  };
 
-      // Measure furniture positions relative to room
-      const measureFurniturePosition = (
-        ref: React.RefObject<View | null>,
-        furnitureType: string
-      ) => {
-        if (ref.current && roomLayoutRef.current) {
-          ref.current.measure((fx, fy, fw, fh, fpx, fpy) => {
-            roomLayoutRef.current?.measure((rx, ry, rw, rh, rpx, rpy) => {
-              const relativeX = fpx - rpx;
-              const relativeY = fpy - rpy;
-              setFurnitureBounds((prev) => ({
-                ...prev,
-                [furnitureType]: {
-                  x: relativeX,
-                  y: relativeY,
-                  width: fw,
-                  height: fh,
-                },
-              }));
-              console.log(`🏠 ${furnitureType} Position:`, {
-                x: relativeX,
-                y: relativeY,
-                width: fw,
-                height: fh,
-              });
-            });
-          });
+  const handleFurnitureRowLayout = (e: any) => {
+    if (roomLayoutRef.current) {
+      roomLayoutRef.current.measure(
+        (rx, ry, rwidth, rheight, rpageX, rpageY) => {
+          const { x, y } = e.nativeEvent.layout;
+          const offsetX = x;
+          const offsetY = y;
+          console.log("📐 FurnitureRow Offset:", { offsetX, offsetY });
+          setFurnitureRowOffset({ x: offsetX, y: offsetY });
         }
-      };
+      );
+    }
+  };
 
-      measureFurniturePosition(wardrobeRef, "wardrobe");
-      measureFurniturePosition(jewelryBoxRef, "jewelryBox");
-      measureFurniturePosition(hangerRef, "hanger");
-      measureFurniturePosition(shoeShelfRef, "shoeShelf");
+  const handleFurnitureLayout = (furnitureType: string, e: any) => {
+    const { x, y, width, height } = e.nativeEvent.layout;
+    const adjustedX = x + furnitureRowOffset.x;
+    const adjustedY = y + furnitureRowOffset.y;
+    setFurnitureBounds((prev) => ({
+      ...prev,
+      [furnitureType]: { x: adjustedX, y: adjustedY, width, height },
+    }));
+    console.log(`📐 ${furnitureType} Bounds:`, {
+      x: adjustedX,
+      y: adjustedY,
+      width,
+      height,
+    });
+  };
 
-      // Measure furniture interiors
-      const measureContainer = (
-        ref: React.RefObject<View | null>,
-        container: string
-      ) => {
-        if (ref.current) {
-          ref.current.measure((x, y, width, height) => {
-            if (width > 0 && height > 0) {
-              setContainerBounds((prev) => ({
-                ...prev,
-                [container]: { width, height },
-              }));
-            }
-          });
-        }
-      };
-
-      measureContainer(wardrobeInteriorRef, "wardrobe");
-      measureContainer(shoeRackInteriorRef, "shoeShelf");
-      measureContainer(jewelryBoxInteriorRef, "jewelryBox");
-      measureContainer(hangerInteriorRef, "hanger");
-    }, 400);
+  const handleContainerLayout = (container: string, e: any) => {
+    const { width, height } = e.nativeEvent.layout;
+    setContainerBounds((prev) => ({
+      ...prev,
+      [container]: { width, height },
+    }));
   };
 
   const loadWardrobeItems = async () => {
     try {
       const items = await wardrobeStorage.getItems();
       console.log("🔄 Loaded items:", items.length);
+      console.log("📐 Current floorOffset:", floorOffset);
 
       setWardrobeItems(items);
 
@@ -195,14 +156,37 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
               items.find((i) => i.id === id)?.placedIn === "floor"
           ).length;
 
-          // Push initial floor spawns lower by adding a vertical offset
-          const SPAWN_Y_OFFSET = 300; // increase to move items further down
-          const baseFloorY = floorOffset.y + SPAWN_Y_OFFSET;
+          const MOBILE_SPACING = isMobile ? 60 : 70;
+          const SPAWN_Y_OFFSET = isMobile ? 50 : 200;
+          const STATUSBAR_HEIGHT = isMobile ? 40 : 0;
+
+          let baseFloorY;
+          if (isFullscreen && isMobile) {
+            baseFloorY = STATUSBAR_HEIGHT + 100;
+          } else {
+            baseFloorY =
+              floorOffset.y > 0
+                ? floorOffset.y + SPAWN_Y_OFFSET
+                : isMobile
+                ? 250
+                : 350;
+          }
+          initialPositions[item.id] = {
+            x: 20 + (floorItemCount % (isMobile ? 4 : 6)) * MOBILE_SPACING,
+            y:
+              baseFloorY + Math.floor(floorItemCount / (isMobile ? 4 : 6)) * 75,
+          };
 
           initialPositions[item.id] = {
-            x: 20 + (floorItemCount % 6) * 70,
-            y: baseFloorY + Math.floor(floorItemCount / 6) * 75,
+            x: 20 + (floorItemCount % (isMobile ? 4 : 6)) * MOBILE_SPACING,
+            y:
+              baseFloorY + Math.floor(floorItemCount / (isMobile ? 4 : 6)) * 75,
           };
+
+          console.log(
+            `📍 Item ${item.id} position:`,
+            initialPositions[item.id]
+          );
         }
 
         if (item.customSize) {
@@ -223,16 +207,21 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
 
   const getDefaultSizeForContainer = (container: FurnitureType) => {
     const defaultSizes = {
-      floor: { width: 60, height: 60 },
-      wardrobe: { width: 60, height: 60 },
-      shoeShelf: { width: 50, height: 50 },
-      jewelryBox: { width: 40, height: 40 },
-      hanger: { width: 60, height: 80 },
+      floor: isMobile ? { width: 50, height: 50 } : { width: 60, height: 60 },
+      wardrobe: isMobile
+        ? { width: 50, height: 50 }
+        : { width: 60, height: 60 },
+      shoeShelf: isMobile
+        ? { width: 45, height: 45 }
+        : { width: 50, height: 50 },
+      jewelryBox: isMobile
+        ? { width: 35, height: 35 }
+        : { width: 40, height: 40 },
+      hanger: isMobile ? { width: 50, height: 70 } : { width: 60, height: 80 },
     };
     return defaultSizes[container];
   };
 
-  // REPLACE JUST THIS FUNCTION - keep everything else the same
   const handleItemDrag = async (
     itemId: string,
     position: { x: number; y: number },
@@ -248,14 +237,8 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
     let clampedPosition = position;
     let placedIn: FurnitureType = container;
 
-    console.log(`📦 Dragging in ${container}:`, {
-      position,
-      roomBounds,
-      itemSize: currentSize,
-    });
-
     if (container === "floor") {
-      // Floor dragging logic - unchanged
+      // MOBILE FIX: Better bounds checking for mobile
       clampedPosition = {
         x: Math.max(0, Math.min(position.x, roomBounds.width - itemWidth)),
         y: Math.max(0, Math.min(position.y, roomBounds.height - itemHeight)),
@@ -270,7 +253,6 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
             clampedPosition.y <= furnitureRect.y + furnitureRect.height
           ) {
             placedIn = furnitureType as FurnitureType;
-            console.log(`🎯 Item placed in ${placedIn}`);
 
             const furnitureInteriorBounds = containerBounds[placedIn];
             if (furnitureInteriorBounds) {
@@ -286,14 +268,12 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
         }
       );
     } else {
-      // FURNITURE INTERIOR: NO BOUNDS AT ALL - use position exactly as given
       clampedPosition = {
         x: position.x,
         y: position.y,
       };
     }
 
-    // Update item placement and position
     const updatedItems = wardrobeItems.map((i) =>
       i.id === itemId ? { ...i, placedIn, position: clampedPosition } : i
     );
@@ -315,9 +295,18 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
       itemSizes[itemId] || getDefaultSizeForContainer("floor");
     const scaleFactor = direction === "increase" ? 1.2 : 0.8;
 
+    const maxSize = isMobile ? 120 : 150;
+    const minSize = isMobile ? 15 : 20;
+
     const newSize = {
-      width: Math.max(20, Math.min(150, currentSize.width * scaleFactor)),
-      height: Math.max(20, Math.min(150, currentSize.height * scaleFactor)),
+      width: Math.max(
+        minSize,
+        Math.min(maxSize, currentSize.width * scaleFactor)
+      ),
+      height: Math.max(
+        minSize,
+        Math.min(maxSize, currentSize.height * scaleFactor)
+      ),
     };
 
     setItemSizes((prev) => ({
@@ -370,7 +359,6 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
   const handleFurniturePress = (furnitureType: FurnitureType) => {
     setCurrentView(furnitureType);
     setSelectedItem(null);
-    setTimeout(measureAllBounds, 100);
   };
 
   const handleTrashBinPress = () => {
@@ -389,12 +377,19 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
         (i) => !i.placedIn || i.placedIn === "floor"
       ).length;
 
-      const SPAWN_Y_OFFSET = 100; // increase to move items further down
-      const baseFloorY = floorOffset.y + SPAWN_Y_OFFSET;
+      const MOBILE_SPACING = isMobile ? 60 : 70;
+      const SPAWN_Y_OFFSET = isMobile ? 80 : 100;
+
+      const baseFloorY =
+        floorOffset.y > 0
+          ? floorOffset.y + SPAWN_Y_OFFSET
+          : isMobile
+          ? 150
+          : 200;
 
       const newPosition = {
-        x: 50 + (floorItemCount % 5) * 70,
-        y: baseFloorY + Math.floor(floorItemCount / 5) * 75,
+        x: 20 + (floorItemCount % (isMobile ? 4 : 5)) * MOBILE_SPACING,
+        y: baseFloorY + Math.floor(floorItemCount / (isMobile ? 4 : 5)) * 75,
       };
 
       const updatedItems = wardrobeItems.map((i) =>
@@ -441,7 +436,6 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
     setItemToDelete(null);
   };
 
-  // Furniture views (unchanged)
   const renderWardrobeView = () => (
     <View style={styles.furnitureView}>
       <View style={styles.headerRow}>
@@ -455,7 +449,10 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
         <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.wardrobeInterior} ref={wardrobeInteriorRef}>
+      <View
+        style={styles.wardrobeInterior}
+        onLayout={(e) => handleContainerLayout("wardrobe", e)}
+      >
         <Image
           source={require("../../assets/furniture/wardrobe-open.png")}
           style={styles.furnitureBackground}
@@ -509,7 +506,10 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
         <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.hangerInterior} ref={hangerInteriorRef}>
+      <View
+        style={styles.hangerInterior}
+        onLayout={(e) => handleContainerLayout("hanger", e)}
+      >
         <Image
           source={require("../../assets/furniture/hanger-rack.png")}
           style={styles.hangerRackImage}
@@ -561,7 +561,10 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
         <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.shoeRackInterior} ref={shoeRackInteriorRef}>
+      <View
+        style={styles.shoeRackInterior}
+        onLayout={(e) => handleContainerLayout("shoeShelf", e)}
+      >
         <Image
           source={require("../../assets/furniture/shoe-rack-open.png")}
           style={styles.furnitureBackground}
@@ -615,7 +618,10 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
         <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.jewelryBoxInterior} ref={jewelryBoxInteriorRef}>
+      <View
+        style={styles.jewelryBoxInterior}
+        onLayout={(e) => handleContainerLayout("jewelryBox", e)}
+      >
         <Image
           source={require("../../assets/furniture/jewelry-box-open.png")}
           style={styles.furnitureBackground}
@@ -674,7 +680,6 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
     </View>
   );
 
-  // FIXED: The main structural change - floor items at room level
   const fullContent = (
     <View style={windowStyles.fullContent}>
       <Text style={windowStyles.fullSubtitle}>
@@ -693,7 +698,11 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
           {currentView === "jewelryBox" && renderJewelryBoxView()}
         </>
       ) : (
-        <View style={windowStyles.roomLayout} ref={roomLayoutRef}>
+        <View
+          style={windowStyles.roomLayout}
+          ref={roomLayoutRef}
+          onLayout={handleRoomLayout}
+        >
           <TouchableOpacity
             style={windowStyles.trashBin}
             onPress={handleTrashBinPress}
@@ -704,63 +713,87 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
             />
           </TouchableOpacity>
 
-          <View style={windowStyles.furnitureRow}>
-            <TouchableOpacity
-              ref={wardrobeRef}
-              onPress={() => handleFurniturePress("wardrobe")}
-            >
-              <Image
-                source={require("../../assets/furniture/wardrobe-closed.png")}
-                style={[windowStyles.furnitureImage, windowStyles.wardrobeSize]}
-              />
-            </TouchableOpacity>
+          <View
+            style={[
+              windowStyles.furnitureRow,
+              isMobile && windowStyles.furnitureRowMobile,
+            ]}
+            ref={furnitureRowRef}
+            onLayout={handleFurnitureRowLayout}
+          >
+            <View onLayout={(e) => handleFurnitureLayout("wardrobe", e)}>
+              <TouchableOpacity
+                onPress={() => handleFurniturePress("wardrobe")}
+              >
+                <Image
+                  source={require("../../assets/furniture/wardrobe-closed.png")}
+                  style={[
+                    windowStyles.furnitureImage,
+                    windowStyles.wardrobeSize,
+                    isMobile && windowStyles.wardrobeSizeMobile,
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity
-              ref={jewelryBoxRef}
-              onPress={() => handleFurniturePress("jewelryBox")}
-            >
-              <Image
-                source={require("../../assets/furniture/jewelry-box-closed.png")}
-                style={[
-                  windowStyles.furnitureImage,
-                  windowStyles.jewelryBoxSize,
-                ]}
-              />
-            </TouchableOpacity>
+            <View onLayout={(e) => handleFurnitureLayout("jewelryBox", e)}>
+              <TouchableOpacity
+                onPress={() => handleFurniturePress("jewelryBox")}
+              >
+                <Image
+                  source={require("../../assets/furniture/jewelry-box-closed.png")}
+                  style={[
+                    windowStyles.furnitureImage,
+                    windowStyles.jewelryBoxSize,
+                    isMobile && windowStyles.jewelryBoxSizeMobile,
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity
-              ref={hangerRef}
-              onPress={() => handleFurniturePress("hanger")}
-            >
-              <Image
-                source={require("../../assets/furniture/hanger-closed.png")}
-                style={[windowStyles.furnitureImage, windowStyles.hangerSize]}
-              />
-            </TouchableOpacity>
+            <View onLayout={(e) => handleFurnitureLayout("hanger", e)}>
+              <TouchableOpacity onPress={() => handleFurniturePress("hanger")}>
+                <Image
+                  source={require("../../assets/furniture/hanger-closed.png")}
+                  style={[
+                    windowStyles.furnitureImage,
+                    windowStyles.hangerSize,
+                    isMobile && windowStyles.hangerSizeMobile,
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity
-              ref={shoeShelfRef}
-              onPress={() => handleFurniturePress("shoeShelf")}
-            >
-              <Image
-                source={require("../../assets/furniture/shoe-rack-closed.png")}
-                style={[
-                  windowStyles.furnitureImage,
-                  windowStyles.shoeShelfSize,
-                ]}
-              />
-            </TouchableOpacity>
+            <View onLayout={(e) => handleFurnitureLayout("shoeShelf", e)}>
+              <TouchableOpacity
+                onPress={() => handleFurniturePress("shoeShelf")}
+              >
+                <Image
+                  source={require("../../assets/furniture/shoe-rack-closed.png")}
+                  style={[
+                    windowStyles.furnitureImage,
+                    windowStyles.shoeShelfSize,
+                    isMobile && windowStyles.shoeShelfSizeMobile,
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Floor area - just the visual background */}
-          <View style={windowStyles.floorArea} ref={floorAreaRef}>
+          <View
+            style={[
+              windowStyles.floorArea,
+              isMobile && windowStyles.floorAreaMobile,
+            ]}
+            ref={floorAreaRef}
+            onLayout={handleFloorLayout}
+          >
             <Image
               source={require("../../assets/floor-texture.png")}
               style={windowStyles.floorTexture}
               resizeMode="repeat"
             />
 
-            {/* Empty state only */}
             {wardrobeItems.length === 0 && (
               <View style={windowStyles.emptyFloor}>
                 <Text style={windowStyles.emptyText}>No items yet</Text>
@@ -771,7 +804,6 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
             )}
           </View>
 
-          {/* FIXED: Floor items rendered at room level for true free movement */}
           {getFloorItems().map((item) => {
             const currentSize =
               itemSizes[item.id] || getDefaultSizeForContainer("floor");
@@ -814,7 +846,12 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
         animationType="fade"
       >
         <View style={windowStyles.modalOverlay}>
-          <View style={windowStyles.modalContent}>
+          <View
+            style={[
+              windowStyles.modalContent,
+              isMobile && windowStyles.modalContentMobile,
+            ]}
+          >
             <Text style={windowStyles.modalTitle}>Delete Item</Text>
             <Text style={windowStyles.modalText}>
               Are you sure you want to delete this item?
@@ -841,8 +878,6 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
 
   return isMobile && !isFullscreen ? mobilePreviewContent : fullContent;
 };
-
-// ... (rest of the styles remain the same)
 
 const resizeStyles = StyleSheet.create({
   resizeControls: {
@@ -924,7 +959,7 @@ const windowStyles = StyleSheet.create({
   },
   roomLayout: {
     flex: 1,
-    position: "relative", // Important for absolute positioning of floor items
+    position: "relative",
   },
   furnitureRow: {
     flexDirection: "row",
@@ -935,6 +970,11 @@ const windowStyles = StyleSheet.create({
     paddingHorizontal: 10,
     marginTop: 10,
   },
+  furnitureRowMobile: {
+    height: 120,
+    marginBottom: 5,
+    paddingHorizontal: 5,
+  },
   furnitureImage: {
     resizeMode: "contain",
   },
@@ -942,19 +982,34 @@ const windowStyles = StyleSheet.create({
     width: 180,
     height: 160,
   },
+  wardrobeSizeMobile: {
+    width: 140,
+    height: 120,
+  },
   jewelryBoxSize: {
     width: 100,
     height: 80,
+  },
+  jewelryBoxSizeMobile: {
+    width: 80,
+    height: 60,
   },
   hangerSize: {
     width: 130,
     height: 100,
   },
+  hangerSizeMobile: {
+    width: 100,
+    height: 80,
+  },
   shoeShelfSize: {
     width: 90,
     height: 70,
   },
-  // Floor area is now just a visual background
+  shoeShelfSizeMobile: {
+    width: 70,
+    height: 50,
+  },
   floorArea: {
     flex: 1,
     backgroundColor: "transparent",
@@ -963,6 +1018,10 @@ const windowStyles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#e0e0e0",
     minHeight: 300,
+  },
+  floorAreaMobile: {
+    minHeight: 250,
+    marginTop: 5,
   },
   floorTexture: {
     position: "absolute",
@@ -1007,6 +1066,7 @@ const windowStyles = StyleSheet.create({
   emptySubtext: {
     fontSize: 12,
     color: "#666",
+    textAlign: "center",
   },
   trashBin: {
     position: "absolute",
@@ -1042,6 +1102,10 @@ const windowStyles = StyleSheet.create({
     borderLeftColor: "#ffffff",
     borderRightColor: "#808080",
     borderBottomColor: "#808080",
+  },
+  modalContentMobile: {
+    width: "90%",
+    marginHorizontal: 20,
   },
   modalTitle: {
     fontSize: 18,

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { PanResponder, View, StyleSheet } from "react-native";
+import { useEffect } from "react";
 
 interface DraggableProps {
   children: React.ReactNode;
@@ -20,6 +21,10 @@ const Draggable: React.FC<DraggableProps> = ({
   const viewRef = useRef<View>(null);
   const lastTapRef = useRef<number>(0);
   const isDraggingRef = useRef(false);
+
+  useEffect(() => {
+    setPosition(initialPosition);
+  }, [initialPosition]);
 
   const handlePress = () => {
     if (isDraggingRef.current) {
@@ -53,7 +58,6 @@ const Draggable: React.FC<DraggableProps> = ({
           y: initialPosition.y + gestureState.dy,
         };
 
-        // REMOVED: No clamping here - let handleItemDrag handle it
         setPosition(newPosition);
         onDrag?.(newPosition);
       }

@@ -1,5 +1,4 @@
 class BackgroundRemovalService {
-  // Method 1: Smart edge detection + flood fill
   static async removeBackgroundWithEdges(imageUrl: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const img = new (window as any).Image();
@@ -40,7 +39,6 @@ class BackgroundRemovalService {
     });
   }
 
-  // Smart algorithm: Edge detection + flood fill from corners
   private static smartBackgroundRemoval(
     ctx: CanvasRenderingContext2D,
     width: number,
@@ -93,7 +91,6 @@ class BackgroundRemovalService {
     ctx.putImageData(imageData, 0, 0);
   }
 
-  // Edge detection using Sobel operator
   private static detectEdges(
     data: Uint8ClampedArray,
     width: number,
@@ -155,7 +152,7 @@ class BackgroundRemovalService {
       [0, height - 1],
       [width - 1, height - 1],
       [Math.floor(width / 2), 0],
-      [0, Math.floor(height / 2)], // Add more samples
+      [0, Math.floor(height / 2)],
     ];
 
     return corners.map(([x, y]) => {
@@ -165,7 +162,6 @@ class BackgroundRemovalService {
   }
 
   private static findMostCommonColor(colors: number[][]): number[] {
-    // Simple: return the average of corner colors
     const avg = [0, 0, 0];
     colors.forEach((color) => {
       avg[0] += color[0];
@@ -204,16 +200,13 @@ class BackgroundRemovalService {
         data[pixelIndex + 2],
       ];
 
-      // Skip if this is an edge pixel
       if (edges[index]) {
         continue;
       }
 
-      // Check if color is similar to background
       if (this.isColorSimilar(currentColor, targetColor, tolerance)) {
         visited.add(index);
 
-        // Add neighbors to stack
         stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
       }
     }
@@ -231,10 +224,7 @@ class BackgroundRemovalService {
     return dr <= tolerance && dg <= tolerance && db <= tolerance;
   }
 
-  // Method 2: Fallback to external service (free tier)
   static async removeBackgroundWithService(imageUrl: string): Promise<string> {
-    // Note: This would require a backend API
-    // For now, we'll use the edge detection method
     return this.removeBackgroundWithEdges(imageUrl);
   }
 }

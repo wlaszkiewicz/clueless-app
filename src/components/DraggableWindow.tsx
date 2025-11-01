@@ -14,16 +14,16 @@ import {
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
-// Get safe area insets for mobile devices
+// safe area insets for mobile devices
 const STATUSBAR_HEIGHT = isMobile ? 40 : StatusBar.currentHeight || 24;
 
 interface DraggableWindowProps {
   title: string;
   children: React.ReactNode;
-  mobilePreviewContent?: React.ReactNode; // New: Content for mobile non-fullscreen
+  mobilePreviewContent?: React.ReactNode;
   onClose?: () => void;
   onMinimize?: () => void;
-  onFullscreen?: (isFullscreen: boolean) => void; // Updated: pass state
+  onFullscreen?: (isFullscreen: boolean) => void;
   onDrag: (position: { x: number; y: number }) => void;
   onFocus?: () => void;
   initialPosition: { x: number; y: number };
@@ -31,10 +31,9 @@ interface DraggableWindowProps {
   width?: number;
   height?: number;
   isFocused?: boolean;
-  isMobile?: boolean; // New: explicitly pass mobile state
+  isMobile?: boolean;
 }
 
-// Icon mapping for window title bars
 const windowIconSources = {
   wardrobe: require("../assets/icons/wardrobe.png"),
   outfit: require("../assets/icons/outfit.png"),
@@ -57,7 +56,7 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
   initialPosition,
   iconType = "folder",
   width = isMobile ? screenWidth * 0.8 : 500,
-  height = 400, // SIMPLE DEFAULT - this gets overridden by the prop!
+  height = 400,
   isFocused = false,
   mobilePreviewContent,
 }) => {
@@ -67,27 +66,28 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
     windowIconSources[iconType as keyof typeof windowIconSources] ||
     windowIconSources.folder;
 
+  const windowRef = useRef<View>(null);
+
   const handleFullscreen = () => {
     const newFullscreenState = !isFullscreen;
     setIsFullscreen(newFullscreenState);
-
     if (newFullscreenState) {
-      // Enter fullscreen
       setPosition({ x: 0, y: STATUSBAR_HEIGHT });
     } else {
-      // Exit fullscreen
       setPosition(initialPosition);
     }
     onFullscreen?.(newFullscreenState);
+    setTimeout(() => {
+      windowRef.current?.measure((x, y, width, height) => {
+        console.log("Forced re-measure:", { x, y, width, height });
+      });
+    }, 100);
   };
 
-  // Determine what content to show
   const getWindowContent = () => {
     if (isMobile && !isFullscreen && mobilePreviewContent) {
-      // Show mobile preview content when not in fullscreen
       return mobilePreviewContent;
     }
-    // Show full functionality in fullscreen or on desktop
     return children;
   };
 
@@ -96,7 +96,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
     return true;
   };
 
-  // Create pan responder for title bar dragging only
   const titleBarPanResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
@@ -120,6 +119,7 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
 
   return (
     <View
+      ref={windowRef}
       style={[
         styles.windowContainer,
         {
@@ -131,7 +131,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
       ]}
       onStartShouldSetResponder={handleFocus}
     >
-      {/* Classic 3D Border - Hide in fullscreen */}
       {!isFullscreen && (
         <View style={styles.borderContainer}>
           <View style={styles.borderTopLeft} />
@@ -151,8 +150,7 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
           {title} {isFullscreen ? "(Fullscreen)" : ""}
         </Text>
         <View style={styles.windowControls}>
-          {/* Fullscreen button - only show on mobile */}
-          {isMobile && (
+          {isMobile && title !== "Clueless" && (
             <TouchableOpacity
               style={styles.controlButton}
               onPress={handleFullscreen}
@@ -190,8 +188,7 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
       >
         <View style={styles.contentArea}>{getWindowContent()}</View>
 
-        {/* Show fullscreen hint on mobile when not in fullscreen */}
-        {isMobile && !isFullscreen && (
+        {isMobile && !isFullscreen && title !== "Clueless" && (
           <View style={styles.fullscreenHint}>
             <Text style={styles.fullscreenHintText}>
               💡 Click the fullscreen button to use this feature!
@@ -199,7 +196,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
           </View>
         )}
 
-        {/* Status Bar - Hide in fullscreen */}
         {!isFullscreen && (
           <View style={styles.statusBar}>
             <Text style={styles.statusText}>
@@ -211,7 +207,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
         )}
       </View>
 
-      {/* Resize Handle - Hide in fullscreen */}
       {!isFullscreen && <View style={styles.resizeHandle} />}
     </View>
   );
@@ -348,15 +343,15 @@ const styles = StyleSheet.create({
   },
   windowContent: {
     flex: 1,
-    minHeight: 80, // Reduced minimum height
+    minHeight: 80,
   },
   windowContentFullscreen: {
     flex: 1,
   },
   contentArea: {
     flex: 1,
-    padding: 8, // Reduced padding
-    minHeight: 60, // Reduced minimum height
+    padding: 8,
+    minHeight: 60,
   },
   statusBar: {
     flexDirection: "row",
