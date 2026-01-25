@@ -1,9 +1,8 @@
-// src/constants/Theme.ts
 export const Theme = {
   colors: {
-    desktop: "#008080", // Classic teal background
-    window: "#c0c0c0", // Gray window background
-    titleBar: "#000080", // Blue title bar
+    desktop: "#008080",
+    window: "#c0c0c0",
+    titleBar: "#000080",
     titleText: "#ffffff",
     text: "#000000",
     taskbar: "#c0c0c0",

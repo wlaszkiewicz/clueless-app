@@ -14,7 +14,6 @@ import {
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
-// safe area insets for mobile devices
 const STATUSBAR_HEIGHT = isMobile ? 40 : StatusBar.currentHeight || 24;
 
 interface DraggableWindowProps {
@@ -140,7 +139,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
         </View>
       )}
 
-      {/* Pink Title Bar */}
       <View
         style={[styles.titleBar, isFullscreen && styles.titleBarFullscreen]}
         {...titleBarPanResponder.panHandlers}
@@ -167,7 +165,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
         </View>
       </View>
 
-      {/* Menu Bar - Hide in fullscreen on mobile */}
       {(!isMobile || !isFullscreen) && (
         <View style={styles.menuBar}>
           <Text style={styles.menuItem}>File</Text>
@@ -177,9 +174,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
         </View>
       )}
 
-      {/* Window Content */}
-
-      {/* Window Content */}
       <View
         style={[
           styles.windowContent,

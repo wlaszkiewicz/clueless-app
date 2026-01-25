@@ -89,7 +89,6 @@ const Draggable: React.FC<DraggableProps> = ({
 const styles = StyleSheet.create({
   draggable: {
     position: "absolute",
-    // Prevent text selection
     userSelect: "none",
   },
 });

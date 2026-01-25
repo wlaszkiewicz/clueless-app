@@ -40,7 +40,7 @@ const WindowsDesktop = () => {
     const updateClock = () => {
       const now = new Date();
       setCurrentTime(
-        now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       );
     };
 
@@ -194,7 +194,7 @@ const WindowsDesktop = () => {
         if (isMobile) {
           const iconBottom =
             Math.max(
-              ...desktopIcons.map((icon) => getIconPosition(icon.id).y)
+              ...desktopIcons.map((icon) => getIconPosition(icon.id).y),
             ) + 120;
           const baseX = 10;
           const baseY = iconBottom + 10;
@@ -242,7 +242,7 @@ const WindowsDesktop = () => {
       setFocusedWindow(
         remainingWindows.length > 0
           ? remainingWindows[remainingWindows.length - 1]
-          : null
+          : null,
       );
     }
   };
@@ -252,7 +252,7 @@ const WindowsDesktop = () => {
 
   const handleIconDrag = (
     iconId: string,
-    position: { x: number; y: number }
+    position: { x: number; y: number },
   ) => {
     setIconPositions((prev) => ({
       ...prev,
@@ -262,7 +262,7 @@ const WindowsDesktop = () => {
 
   const handleWindowDrag = (
     windowId: string,
-    position: { x: number; y: number }
+    position: { x: number; y: number },
   ) => {
     setWindowPositions((prev) => ({
       ...prev,
@@ -820,13 +820,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    flexWrap: "nowrap", // Prevent wrapping
-    overflow: "hidden", // Hide overflow initially
+    flexWrap: "nowrap",
+    overflow: "hidden",
   },
   taskbarProgram: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center", // Center content
+    justifyContent: "center",
     paddingHorizontal: isMobile ? 0 : 10,
     paddingVertical: 2,
     backgroundColor: "#c0c0c0",

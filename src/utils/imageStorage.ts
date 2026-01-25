@@ -1,7 +1,6 @@
 import { Platform } from "react-native";
 
 export class ImageStorage {
-  // Convert image to base64 for permanent storage on web
   static async uriToBase64(uri: string): Promise<string> {
     if (uri.startsWith("data:")) {
       return uri;
@@ -16,7 +15,6 @@ export class ImageStorage {
           canvas.height = img.height;
           const ctx = canvas.getContext("2d");
           if (ctx) {
-            // NEW: Clear canvas with transparent background
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0);
             try {
@@ -36,7 +34,6 @@ export class ImageStorage {
     return uri;
   }
 
-  // Check if we need to convert the URI for web
   static async prepareImageForStorage(uri: string): Promise<string> {
     if (Platform.OS === "web" && uri.startsWith("blob:")) {
       console.log("🌐 Converting blob URL to base64 for web storage...");
@@ -45,7 +42,6 @@ export class ImageStorage {
     return uri;
   }
 
-  // Get image dimensions (useful for display)
   static getImageSize(uri: string): Promise<{ width: number; height: number }> {
     return new Promise((resolve, reject) => {
       const img = new Image();
