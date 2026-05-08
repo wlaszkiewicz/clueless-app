@@ -16,6 +16,10 @@
 
 ## What You Can Do
 
+**Windows 2000 Desktop Simulation** — fully interactive desktop environment: 
+windows can be opened, minimized, and closed; desktop icons are draggable; 
+the taskbar and Start menu open (some options are placeholders — it's a work in progress, as if!)
+
 **Organize Your Digital Room** — drag and drop clothes into furniture: wardrobe, hanger rack, shoe shelf, jewelry box, or just leave them on the floor. Click items to resize, long-press to move them out of furniture.
 
 **Add Clothing Items** — take a photo or upload from gallery. Automatic background removal (works best with solid colors). Items are categorized as tops, bottoms, dresses, shoes, accessories, or outerwear.
@@ -54,7 +58,7 @@ npm start
 npm run electron
 ```
 
-> Some features are still a work in progress on mobile. Desktop is the primary supported platform.
+> Some features are still a work in progress on mobile. One day I'll have the time, maybe.
 
 ## Tech Stack
 
