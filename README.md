@@ -4,7 +4,7 @@
 
 <img src="src/assets/clueless-logo.png" width="300" alt="Clueless Logo" />
 
-*As if! Your digital wardrobe just got a major makeover* 💅
+*As if! Your digital wardrobe just got a major makeover*
 
 **A retro-styled fashion organization app that brings Windows 2000 nostalgia to your closet management**
 
@@ -14,143 +14,70 @@
 
 </div>
 
-## What You Can Do Right Now
+## What You Can Do
 
-### 🏠 **Organize Your Digital Room**
-**Drag and drop your clothes** into different furniture pieces:
-- **Click the wardrobe** to store tops and dresses
-- **Use the hanger rack** for hanging items  ( WILL HAVE HANGERS ONE DAY MAYBE)
-- **Open the shoe shelf** for footwear
-- **Access the jewelry box** for accessories
-- **Leave items on the floor** for quick access
+**Organize Your Digital Room** — drag and drop clothes into furniture: wardrobe, hanger rack, shoe shelf, jewelry box, or just leave them on the floor. Click items to resize, long-press to move them out of furniture.
 
-**Pro Tip**: Click items to resize them, long-press to take them out of furniture!
+**Add Clothing Items** — take a photo or upload from gallery. Automatic background removal (works best with solid colors). Items are categorized as tops, bottoms, dresses, shoes, accessories, or outerwear.
 
-### 📸 **Add New Clothing Items**
-**Two ways to add clothes:**
-1. **Take photos** with your camera 📱
-2. **Upload images** from your gallery 🖼️
+**Create Outfits on a Canvas** — drag items onto a canvas, resize and position them, change background colors, and save as an image to share or upload to Pinterest.
 
-**Smart features:**
-- Automatic background removal (works only with solid colors, maybe one day will work properly)
-- Categorize as tops, bottoms, dresses, shoes, accessories, or outerwear
-- Items automatically appear in your room for organization
+**Dress Me** — browse your wardrobe category by category with arrow buttons, switch between dress mode and top/bottom mode, and favorite your best combinations.
 
-### 🎨 **Create Outfits on a Canvas**
-**Build outfits visually:**
-- **Drag items** from your wardrobe onto the canvas
-- **Resize and position** each piece exactly how you want
-- **Change background colors** to match your style
-- **Save as images** to share your creations (or upload on pinterest diva)
+**Style Gallery** — manage all saved outfits by category (Casual, Formal, Work, Party, Sport), edit names, and view creation dates.
 
-**Perfect for**: Planning daily outfits or creating style inspiration boards!
-
-### 👗 **Get Dressed with "Dress Me"**
-**Browse your wardrobe category by category:**
-- **Flip through tops, bottoms, and dresses** with arrow buttons
-- **Switch between dress mode and top/bottom mode**
-- **See real-time outfit combinations**
-- **Favorite your best looks** with one click
-
-**Great for**: Trying new combinations without the hassle!
-
-### 🖼️ **Build Your Style Gallery**
-**Manage all your saved outfits:**
-- **Browse by categories**: Casual, Formal, Work, Party, Sport
-- **Edit outfit names and categories** anytime
-- **Delete outfits** you don't love anymore
-- **View outfit details** and creation dates
-
-**Your personal**: Fashion portfolio and style diary!
-
-## 📸 See It In Action
+## Screenshots
 
 <div align="center">
 
-| Desktop View | My Wardrobe and Others |
+| Desktop View | My Wardrobe |
 |:------------:|:----------------:|
 | <img src="screenshots/desktop-view.png" height="300" alt="Clueless Desktop" /> | <img src="screenshots/my-wardrobe.png" height="300" alt="My Wardrobe Room" /> |
 
 </div>
 
-## 🚀 Get Started 
+## Installation
 
-SOME FEATURES DONT WORK ON MOBILE AND THERES A LOT OF BUGS OKAY BUT ONE DAY IT WILL WORK (maybe) (if i got time)
-
-### Installation
 ```bash
 git clone https://github.com/wlaszkiewicz/clueless-app.git
 cd clueless-app
 npm install
 ```
 
-### Launch the App
-
-**For Mobile and Web (Expo):**
+**Mobile and Web (Expo):**
 ```bash
 npm start
 ```
 
-**For Desktop (Electron):**
+**Desktop (Electron):**
 ```bash
 npm run electron
 ```
 
-## 🎮 Your First Fashion Session
+> Some features are still a work in progress on mobile. Desktop is the primary supported platform.
 
-### Step 1: Add Your First Item
-1. **Double-click "Add Item"** on the desktop
-2. **Choose "Take Photo"** or "Choose from Gallery"  
-3. **Select a category** (like "Tops")
-4. **Try background removal** for clean images
-5. **Click "Save to Wardrobe"** - it appears in your room!
+## Tech Stack
 
-### Step 2: Organize Your Space
-1. **Open "My Wardrobe"** to see your digital room
-2. **Drag items from the floor** onto furniture
-3. **Click the wardrobe** to see items inside
-4. **Resize items** by clicking them and using +/- buttons
+React Native, TypeScript, Electron
 
-### Step 3: Create Your First Outfit
-1. **Launch "Create Outfit"** 
-2. **Pick items from your wardrobe** on the right
-3. **Drag them onto the canvas** and arrange them
-4. **Change the background** if you want
-5. **Save as image** to keep your creation!
+## Future Plans
 
-### Step 4: Try the "Dress Me" Feature
-1. **Open "Dress Me"** 
-2. **Browse through categories** using arrow buttons
-3. **Switch to dress mode** if you prefer
-4. **Click "Favorite"** when you love an outfit
-5. **Check "Style Gallery"** to see all your saved outfits!
-
-
-## 🚀 Future Possibilities
-
-### WILL WORK
-
-### Potential Enhancements
 - [ ] AI-powered outfit suggestions
-- [ ] Weather-based outfit recommendations  
-- [ ] Social sharing features
+- [ ] Weather-based outfit recommendations
 - [ ] Advanced background removal with ML
 - [ ] Outfit calendar and planning
 - [ ] Clothing wear tracking
+- [ ] Hangers (one day, maybe, who knows)
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- **Windows 2000** for the iconic UI inspiration
-- **Cher Horowitz** for the fashion inspiration (*As if!*)
-- **The React Native community** for amazing tools
-- **You** for reading this! 💖
+- Windows 2000 for the iconic UI inspiration
+- Cher Horowitz for the fashion philosophy
 
 ---
 
 <div align="center">
 
-**Made with 💖 and 🎀 for fashion lovers everywhere**
-
-*"She's a full-on Monet... It's like a painting, see? From far away, it's OK, but up close, it's a big old mess."* - But your wardrobe won't be! 
+*"She's a full-on Monet... It's like a painting, see? From far away, it's OK, but up close, it's a big old mess."* — But your wardrobe won't be.
 
 </div>
