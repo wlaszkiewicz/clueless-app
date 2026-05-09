@@ -36,9 +36,21 @@ the taskbar and Start menu open (some options are placeholders — it's a work i
 
 | Desktop View | My Wardrobe |
 |:------------:|:----------------:|
-| <img src="screenshots/desktop-view.png" height="300" alt="Clueless Desktop" /> | <img src="screenshots/my-wardrobe.png" height="300" alt="My Wardrobe Room" /> |
+| <img src="screenshots/desktop/desktop-view.png" height="300" alt="Clueless Desktop" /> | <img src="screenshots/desktop/my-wardrobe.png" height="300" alt="My Wardrobe Room" /> |
 
 </div>
+
+[See all screenshots](docs/screenshots/)
+
+
+## Mobile
+
+The app is fully usable on mobile (with some bugs). Due to limited screen space, windows open in a compact preview mode showing what the window does and a fullscreen button. Tap fullscreen to use the full feature.
+
+| Mobile Desktop | Preview | Fullscreen |
+|:-------:|:-------:|:----------:|
+| ![Mobile Desktop](screenshots/mobile/mobile_view.PNG)| ![Mobile Preview](screenshots/mobile/mobile_preview.PNG) | ![Mobile Fullscreen](screenshots/mobile/mobile_fullscreen.PNG) |
+
 
 ## Installation
 
