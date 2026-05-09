@@ -2,16 +2,16 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   Image,
   Platform,
-  TextInput,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { wardrobeStorage, WardrobeItem } from "../../utils/storage";
 import { ImageStorage } from "../../utils/imageStorage";
 import { BackgroundRemovalService } from "../../utils/bgremoval";
+import MobilePreview, { previewStatText } from "./MobilePreview";
+import { iconStyles, windowStyles } from "./AddItemWindow.styles";
 
 interface AddItemWindowProps {
   isFullscreen?: boolean;
@@ -153,7 +153,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     }
   };
 
-  // FIXED: Simplified image picking
   const pickImage = async () => {
     try {
       if (Platform.OS === "web") {
@@ -178,7 +177,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     }
   };
 
-  // FIXED: Web camera support
   const takePhoto = async () => {
     if (Platform.OS === "web") {
       startCamera();
@@ -314,23 +312,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     </View>
   );
 
-  const mobilePreviewContent = (
-    <View style={windowStyles.previewContent}>
-      <Image
-        source={require("../../assets/icons/add.png")}
-        style={windowStyles.previewIcon}
-      />
-      <Text style={windowStyles.previewTitle}>Add Item</Text>
-      <Text style={windowStyles.previewText}>
-        Add new items to your wardrobe{"\n"}• Take photos{"\n"}• Upload images
-        {"\n"}• Categorize items
-      </Text>
-      <View style={windowStyles.previewStats}>
-        <Text style={windowStyles.statsText}>Camera</Text>
-        <Text style={windowStyles.statsText}>Gallery</Text>
-      </View>
-    </View>
-  );
 
   const WebCameraPreview = () => {
     useEffect(() => {
@@ -375,7 +356,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
       </View>
     );
   };
-  // Full functionality
   const fullContent = (
     <View style={windowStyles.fullContent}>
       <Text style={windowStyles.fullSubtitle}>
@@ -406,7 +386,7 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
         <View style={windowStyles.imagePreview}>
           <Image
             source={require("../../assets/icons/gallery-photo.png")}
-            style={[windowStyles.previewImagePlaceholder]} // Black & white effect
+            style={windowStyles.previewImagePlaceholder}
           />
           <Text style={windowStyles.placeholderText}>No image selected</Text>
         </View>
@@ -438,21 +418,6 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
         </View>
       </View>
 
-      {/* Item Name Input - REDESIGNED */}
-      {/* <View style={windowStyles.formSection}>
-        <Text style={windowStyles.sectionTitle}>Item Name</Text>
-        <View style={windowStyles.nameInputContainer}>
-          <TextInput
-            style={windowStyles.nameInput}
-            value={itemName}
-            onChangeText={setItemName}
-            placeholder="Enter item name..."
-            placeholderTextColor="#666"
-          />
-        </View>
-      </View> */}
-
-      {/* Category Selection  */}
       <View style={windowStyles.formSection}>
         <Text style={windowStyles.sectionTitle}>Category</Text>
         <View style={windowStyles.categoryGrid}>
@@ -467,12 +432,7 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
               onPress={() => setSelectedCategory(category.id)}
             >
               <Image source={category.icon} style={windowStyles.categoryIcon} />
-              <Text
-                style={[
-                  windowStyles.categoryText,
-                  selectedCategory === category.id && windowStyles.categoryText,
-                ]}
-              >
+              <Text style={windowStyles.categoryText}>
                 {category.label}
               </Text>
             </TouchableOpacity>
@@ -543,433 +503,24 @@ const AddItemWindow: React.FC<AddItemWindowProps> = ({
     </View>
   );
 
-  return isMobile && !isFullscreen ? mobilePreviewContent : fullContent;
+  if (isMobile && !isFullscreen) {
+    return (
+      <MobilePreview
+        icon={require("../../assets/icons/add.png")}
+        title="Add Item"
+        text={"Add new items to your wardrobe\n• Take photos\n• Upload images\n• Categorize items"}
+      >
+        <View style={{ flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
+          <Text style={previewStatText.base}>Camera</Text>
+          <Text style={previewStatText.base}>Gallery</Text>
+        </View>
+      </MobilePreview>
+    );
+  }
+
+  return fullContent;
 };
 
-const iconStyles = StyleSheet.create({
-  addIcon: {
-    width: 16,
-    height: 16,
-    position: "relative",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  addHorizontal: {
-    position: "absolute",
-    width: 12,
-    height: 2,
-    backgroundColor: "#000",
-  },
-  addVertical: {
-    position: "absolute",
-    width: 2,
-    height: 12,
-    backgroundColor: "#000",
-  },
 
-  // Close Icon (X mark)
-  closeIcon: {
-    width: 12,
-    height: 12,
-    position: "relative",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  closeLine1: {
-    position: "absolute",
-    width: 12,
-    height: 2,
-    backgroundColor: "#000",
-    transform: [{ rotate: "45deg" }],
-  },
-  closeLine2: {
-    position: "absolute",
-    width: 12,
-    height: 2,
-    backgroundColor: "#000",
-    transform: [{ rotate: "-45deg" }],
-  },
-});
-
-const windowStyles = StyleSheet.create({
-  previewContent: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  previewIcon: {
-    width: 64,
-    height: 64,
-    marginBottom: 16,
-  },
-  previewTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "center",
-    fontFamily: "MS Sans Serif, System",
-  },
-  previewText: {
-    fontSize: 12,
-    textAlign: "center",
-    lineHeight: 16,
-    marginBottom: 16,
-    color: "#666",
-    fontFamily: "MS Sans Serif, System",
-  },
-  previewStats: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    marginTop: 8,
-  },
-  statsText: {
-    fontSize: 10,
-    color: "#888",
-    fontFamily: "MS Sans Serif, System",
-  },
-  fullContent: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#c0c0c0",
-  },
-  fullTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 4,
-    color: "#000",
-    fontFamily: "MS Sans Serif, System",
-  },
-  fullSubtitle: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 20,
-    fontFamily: "MS Sans Serif, System",
-    alignSelf: "center",
-  },
-  // Image Preview - REDESIGNED
-  imagePreview: {
-    alignItems: "center",
-    marginBottom: 20,
-    position: "relative",
-    alignSelf: "center",
-  },
-  previewImagePlaceholder: {
-    width: 120,
-    height: 120,
-    borderWidth: 2,
-    borderColor: "#000",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    opacity: 0.2,
-  },
-  placeholderText: {
-    position: "absolute",
-    top: "50%",
-    fontSize: 10,
-    color: "#000",
-    fontFamily: "MS Sans Serif, System",
-    textAlign: "center",
-  },
-  previewImage: {
-    width: 120,
-    height: 120,
-    borderWidth: 2,
-    borderColor: "#000",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  removeImageButton: {
-    position: "absolute",
-    top: -8,
-    right: -8,
-    backgroundColor: "#c0c0c0",
-    width: 20,
-    height: 20,
-    borderWidth: 1,
-    borderColor: "#808080",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  // Upload Section - REDESIGNED
-  uploadSection: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#000",
-    fontFamily: "MS Sans Serif, System",
-  },
-  uploadOptions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 20,
-  },
-  uploadButton: {
-    flex: 1,
-    alignItems: "center",
-    padding: 12,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    minHeight: 70,
-  },
-  uploadIcon: {
-    width: 40,
-    height: 40,
-    marginBottom: 6,
-  },
-  uploadText: {
-    fontSize: 11,
-    textAlign: "center",
-    fontWeight: "bold",
-    fontFamily: "MS Sans Serif, System",
-  },
-  // Form Sections - REDESIGNED
-  formSection: {
-    marginBottom: 20,
-  },
-  nameInputContainer: {
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#808080",
-    borderLeftColor: "#808080",
-    borderRightColor: "#ffffff",
-    borderBottomColor: "#ffffff",
-    backgroundColor: "white",
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    minHeight: 24,
-  },
-  nameInput: {
-    fontSize: 12,
-    color: "#000000",
-    fontFamily: "MS Sans Serif, System",
-    padding: 0,
-    margin: 0,
-  },
-  // Category Grid - REDESIGNED
-  categoryGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  categoryOption: {
-    flex: 1,
-    minWidth: "10%",
-    alignItems: "center",
-    padding: 8,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 2,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 0,
-    elevation: 3,
-  },
-  categoryOptionSelected: {
-    borderColor: "#ff66b2",
-    borderTopColor: "#808080",
-    borderLeftColor: "#808080",
-    borderRightColor: "#ffffff",
-    borderBottomColor: "#ffffff",
-    shadowOffset: {
-      width: 1,
-      height: 1,
-    },
-    elevation: 1,
-  },
-  categoryIcon: {
-    width: 40,
-    height: 40,
-    marginBottom: 4,
-  },
-  categoryText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    textAlign: "center",
-    fontFamily: "MS Sans Serif, System",
-  },
-
-  tipIcon: {
-    width: 16,
-    height: 16,
-    marginRight: 8,
-    marginTop: 1,
-  },
-  tipContent: {
-    flex: 1,
-  },
-  tipTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginBottom: 2,
-    color: "#000",
-    fontFamily: "MS Sans Serif, System",
-  },
-  tipText: {
-    fontSize: 10,
-    color: "#000",
-    lineHeight: 12,
-    fontFamily: "MS Sans Serif, System",
-  },
-  actionBar: {
-    marginTop: "auto",
-  },
-  actionButton: {
-    backgroundColor: "#c0c0c0",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-  },
-  actionButtonDisabled: {
-    opacity: 0.6,
-  },
-  actionText: {
-    color: "#000",
-    fontWeight: "bold",
-    fontSize: 12,
-    fontFamily: "MS Sans Serif, System",
-  },
-  cameraOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    zIndex: 1000,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cameraContainer: {
-    backgroundColor: "#c0c0c0",
-    padding: 20,
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    width: "80%",
-    maxWidth: 400,
-  },
-  cameraTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 16,
-    textAlign: "center",
-    fontFamily: "MS Sans Serif, System",
-  },
-  cameraPreview: {
-    width: "100%",
-    height: 300,
-    backgroundColor: "#000",
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: "#000",
-  },
-  cameraControls: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  cameraButton: {
-    backgroundColor: "#c0c0c0",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  cameraButtonText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    fontFamily: "MS Sans Serif, System",
-  },
-
-  // Add these styles to windowStyles:
-
-  // Tip and Background Removal Row
-  tipAndBgRemoveRow: {
-    flexDirection: "row",
-    alignItems: "flex-start", // Align items to the top
-    gap: 12,
-    marginBottom: 20,
-  },
-  tipBox: {
-    flex: 1,
-    backgroundColor: "#ffffcc",
-    borderWidth: 1,
-    borderColor: "#000",
-    padding: 12,
-    minHeight: 60,
-  },
-  bgRemoveButton: {
-    backgroundColor: "#c0c0c0",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    minWidth: 100,
-    flexShrink: 0,
-  },
-  bgRemoveContent: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bgRemoveIcon: {
-    width: 40,
-    height: 40,
-    marginBottom: 4,
-  },
-  bgRemoveText: {
-    color: "#000",
-    fontWeight: "bold",
-    fontSize: 10,
-    fontFamily: "MS Sans Serif, System",
-    textAlign: "center",
-  },
-  bgRemoveButtonDisabled: {
-    opacity: 0.6,
-    backgroundColor: "#e0e0e0",
-  },
-});
 
 export default AddItemWindow;

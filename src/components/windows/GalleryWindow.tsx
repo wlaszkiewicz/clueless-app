@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   Image,
   Dimensions,
@@ -11,8 +10,10 @@ import {
   TextInput,
 } from "react-native";
 import { wardrobeStorage, Outfit, WardrobeItem } from "../../utils/storage";
+import MobilePreview, { previewStatText } from "./MobilePreview";
+import { styles } from "./GalleryWindow.styles";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const { width: screenWidth } = Dimensions.get("window");
 
 interface StyleGalleryWindowProps {
   isFullscreen?: boolean;
@@ -310,7 +311,6 @@ const StyleGalleryWindow: React.FC<StyleGalleryWindowProps> = ({
           )}
         </View>
 
-        {/* Outfit Info and Controls */}
         <View style={styles.outfitInfo}>
           <View style={styles.outfitHeader}>
             <Text style={styles.outfitName} numberOfLines={1}>
@@ -380,25 +380,9 @@ const StyleGalleryWindow: React.FC<StyleGalleryWindowProps> = ({
     );
   };
 
-  const mobilePreviewContent = (
-    <View style={styles.previewContent}>
-      <Image
-        source={require("../../assets/icons/gallery.png")}
-        style={styles.previewIcon}
-      />
-      <Text style={styles.previewTitle}>Style Gallery</Text>
-      <Text style={styles.previewText}>
-        Browse and manage your{"\n"}favorited outfits
-      </Text>
-      <View style={styles.previewStats}>
-        <Text style={styles.statsText}>Outfits: {savedOutfits.length}</Text>
-      </View>
-    </View>
-  );
 
   const fullContent = (
     <View style={styles.fullContent}>
-      {/* Category Filter */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -422,7 +406,6 @@ const StyleGalleryWindow: React.FC<StyleGalleryWindowProps> = ({
         ))}
       </ScrollView>
 
-      {/* Single Outfit View */}
       <View style={styles.outfitContainer}>
         {getFilteredOutfits().length === 0 ? (
           <View style={styles.emptyState}>
@@ -448,7 +431,6 @@ const StyleGalleryWindow: React.FC<StyleGalleryWindowProps> = ({
         )}
       </View>
 
-      {/* Delete Confirmation Modal */}
       <Modal visible={showDeleteModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -475,7 +457,6 @@ const StyleGalleryWindow: React.FC<StyleGalleryWindowProps> = ({
         </View>
       </Modal>
 
-      {/* Edit Outfit Modal */}
       <Modal visible={showEditModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -542,385 +523,19 @@ const StyleGalleryWindow: React.FC<StyleGalleryWindowProps> = ({
     </View>
   );
 
-  return isMobile && !isFullscreen ? mobilePreviewContent : fullContent;
-};
+  if (isMobile && !isFullscreen) {
+    return (
+      <MobilePreview
+        icon={require("../../assets/icons/gallery.png")}
+        title="Style Gallery"
+        text={"Browse and manage your\nfavorited outfits"}
+      >
+        <Text style={previewStatText.base}>Outfits: {savedOutfits.length}</Text>
+      </MobilePreview>
+    );
+  }
 
-const styles = StyleSheet.create({
-  previewContent: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  previewIcon: {
-    width: 64,
-    height: 64,
-    marginBottom: 16,
-  },
-  previewTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  previewText: {
-    fontSize: 12,
-    textAlign: "center",
-    lineHeight: 16,
-    marginBottom: 16,
-    color: "#666",
-  },
-  previewStats: {
-    marginTop: 8,
-  },
-  statsText: {
-    fontSize: 10,
-    color: "#888",
-  },
-  fullContent: {
-    flex: 1,
-    padding: 10,
-    backgroundColor: "#c0c0c0",
-  },
-  header: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#000",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#666",
-  },
-  categoryScroll: {
-    marginBottom: 10,
-    maxHeight: 60,
-  },
-  categoryButton: {
-    alignItems: "center",
-    padding: 8,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    marginRight: 8,
-    minWidth: 80,
-  },
-  categoryButtonSelected: {
-    borderColor: "#000",
-    backgroundColor: "#ffffcc",
-  },
-  categoryIcon: {
-    width: 20,
-    height: 20,
-    marginBottom: 4,
-  },
-  categoryText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  outfitContainer: {
-    flex: 1,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
-  },
-  emptyIcon: {
-    width: 64,
-    height: 64,
-    marginBottom: 16,
-    opacity: 0.5,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#666",
-    textAlign: "center",
-  },
-  emptyText: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 18,
-  },
-  outfitView: {
-    flex: 1,
-  },
-  outfitCanvas: {
-    flex: 2,
-    position: "relative",
-    backgroundColor: "#ffffff",
-    borderWidth: 2,
-    borderColor: "#000",
-    marginBottom: 16,
-    minHeight: 380,
-  },
-  outfitItem: {
-    position: "absolute",
-  },
-  outfitItemImage: {
-    borderRadius: 4,
-  },
-  emptyOutfit: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyOutfitIcon: {
-    width: 64,
-    height: 64,
-    marginBottom: 16,
-    opacity: 0.5,
-  },
-  emptyOutfitText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  outfitInfo: {
-    flex: 1,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    padding: 16,
-  },
-  outfitHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  outfitName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
-    flex: 1,
-  },
-  outfitCounter: {
-    fontSize: 14,
-    color: "#666",
-    fontWeight: "bold",
-  },
-  outfitMeta: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 8,
-  },
-  categoryTag: {
-    alignSelf: "flex-start",
-    backgroundColor: "#ffffcc",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    marginBottom: 12,
-  },
-  categoryTagText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: "#000",
-  },
-  outfitActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  navButton: {
-    backgroundColor: "#c0c0c0",
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  navButtonText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#000",
-  },
-  mainActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#c0c0c0",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    gap: 6,
-  },
-  deleteAction: {
-    backgroundColor: "#ffcccc",
-  },
-  actionIcon: {
-    width: 16,
-    height: 16,
-  },
-  actionText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#000",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 8,
-    width: "80%",
-    maxWidth: 400,
-    borderWidth: 2,
-    borderColor: "#c0c0c0",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  modalText: {
-    fontSize: 14,
-    marginBottom: 15,
-    textAlign: "center",
-    color: "#333",
-    lineHeight: 18,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 6,
-    color: "#000",
-  },
-  nameInputContainer: {
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#808080",
-    borderLeftColor: "#808080",
-    borderRightColor: "#ffffff",
-    borderBottomColor: "#ffffff",
-    backgroundColor: "white",
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    marginBottom: 15,
-  },
-  nameInput: {
-    fontSize: 14,
-    color: "#000000",
-    padding: 0,
-    margin: 0,
-  },
-  categoryScrollModal: {
-    marginBottom: 15,
-    maxHeight: 60,
-  },
-  categoryOptionModal: {
-    alignItems: "center",
-    padding: 6,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    marginRight: 6,
-    minWidth: 70,
-  },
-  categoryOptionSelectedModal: {
-    borderColor: "#000",
-    backgroundColor: "#ffffcc",
-  },
-  categoryIconModal: {
-    width: 20,
-    height: 20,
-    marginBottom: 2,
-  },
-  categoryTextModal: {
-    fontSize: 9,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 4,
-    alignItems: "center",
-  },
-  cancelButton: {
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  deleteButton: {
-    backgroundColor: "#ffcccc",
-    borderWidth: 2,
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  saveButton: {
-    backgroundColor: "#ffffcc",
-    borderWidth: 2,
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  cancelButtonText: {
-    color: "#000",
-    fontWeight: "bold",
-  },
-  deleteButtonText: {
-    color: "#000",
-    fontWeight: "bold",
-  },
-  saveButtonText: {
-    color: "#000",
-    fontWeight: "bold",
-  },
-});
+  return fullContent;
+};
 
 export default StyleGalleryWindow;

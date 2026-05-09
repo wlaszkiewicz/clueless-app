@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
+import { styles } from "./DraggableWindow.styles";
 import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   Image,
   Dimensions,
   PanResponder,
@@ -76,11 +76,6 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
       setPosition(initialPosition);
     }
     onFullscreen?.(newFullscreenState);
-    setTimeout(() => {
-      windowRef.current?.measure((x, y, width, height) => {
-        console.log("Forced re-measure:", { x, y, width, height });
-      });
-    }, 100);
   };
 
   const getWindowContent = () => {
@@ -206,194 +201,5 @@ const DraggableWindow: React.FC<DraggableWindowProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  windowContainer: {
-    position: "absolute",
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    minWidth: isMobile ? screenWidth * 0.8 : 320,
-    maxWidth: screenWidth,
-    shadowColor: "#000",
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 0,
-    elevation: 8,
-  },
-  borderContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  borderTopLeft: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 2,
-    height: 2,
-    backgroundColor: "#ffffff",
-  },
-  borderTopRight: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 2,
-    width: 2,
-    backgroundColor: "#ffffff",
-  },
-  borderBottomLeft: {
-    position: "absolute",
-    left: 0,
-    bottom: 0,
-    right: 2,
-    height: 2,
-    backgroundColor: "#808080",
-  },
-  borderBottomRight: {
-    position: "absolute",
-    right: 0,
-    bottom: 0,
-    top: 2,
-    width: 2,
-    backgroundColor: "#808080",
-  },
-  titleBar: {
-    backgroundColor: "#ff66b2",
-    padding: 4,
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#808080",
-    minHeight: 24,
-  },
-  titleBarFullscreen: {
-    backgroundColor: "#ff66b2",
-  },
-  titleIcon: {
-    width: 16,
-    height: 16,
-    marginRight: 6,
-    marginLeft: 4,
-    flexShrink: 0,
-  },
-  titleText: {
-    color: "#ffffff",
-    fontSize: 11,
-    fontWeight: "bold",
-    flex: 1,
-    fontFamily: "MS Sans Serif, System",
-    textShadowColor: "#000000",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
-    userSelect: "none",
-    marginRight: 4,
-  },
-  windowControls: {
-    flexDirection: "row",
-    flexShrink: 0,
-  },
-  controlButton: {
-    width: isMobile ? 25 : 20,
-    height: isMobile ? 24 : 18,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 1,
-    borderColor: "#808080",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    marginLeft: 2,
-    justifyContent: "center",
-    alignItems: "center",
-    flexShrink: 0,
-  },
-  controlText: {
-    color: "#000000",
-    fontSize: 12,
-    fontWeight: "bold",
-    lineHeight: 14,
-    marginTop: -1,
-  },
-  menuBar: {
-    flexDirection: "row",
-    backgroundColor: "#c0c0c0",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderBottomWidth: 1,
-    borderBottomColor: "#808080",
-    minHeight: 20,
-  },
-  menuItem: {
-    fontSize: 11,
-    color: "#000000",
-    marginRight: 16,
-    fontFamily: "MS Sans Serif, System",
-    fontWeight: "bold",
-    userSelect: "none",
-  },
-  windowContent: {
-    flex: 1,
-    minHeight: 80,
-  },
-  windowContentFullscreen: {
-    flex: 1,
-  },
-  contentArea: {
-    flex: 1,
-    padding: 8,
-    minHeight: 60,
-  },
-  statusBar: {
-    flexDirection: "row",
-    backgroundColor: "#c0c0c0",
-    padding: 4,
-    borderTopWidth: 1,
-    borderTopColor: "#808080",
-    alignItems: "center",
-    minHeight: 20,
-  },
-  statusText: {
-    fontSize: 10,
-    color: "#000000",
-    fontFamily: "MS Sans Serif, System",
-    userSelect: "none",
-  },
-  statusSeparator: {
-    width: 1,
-    height: 12,
-    backgroundColor: "#808080",
-    marginHorizontal: 8,
-  },
-  resizeHandle: {
-    position: "absolute",
-    bottom: 2,
-    right: 2,
-    width: 16,
-    height: 16,
-    borderWidth: 2,
-    borderColor: "#c0c0c0",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    borderTopColor: "#dfdfdf",
-    borderLeftColor: "#dfdfdf",
-  },
-  fullscreenHint: {
-    backgroundColor: "transparent",
-    padding: 8,
-    borderTopWidth: 1,
-    borderTopColor: "transparent",
-    alignItems: "center",
-  },
-  fullscreenHintText: {
-    fontSize: 12,
-    color: "#000000FF",
-    fontFamily: "MS Sans Serif, System",
-    textAlign: "center",
-  },
-});
 
 export default DraggableWindow;

@@ -2,17 +2,13 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   Image,
-  Dimensions,
-  ScrollView,
   Modal,
-  TextInput,
 } from "react-native";
 import { wardrobeStorage, WardrobeItem, Outfit } from "../../utils/storage";
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+import MobilePreview, { previewStatText } from "./MobilePreview";
+import { styles } from "./DressMeWindow.styles";
 
 interface DressMeWindowProps {
   isFullscreen?: boolean;
@@ -285,22 +281,6 @@ const DressMeWindow: React.FC<DressMeWindowProps> = ({
     );
   };
 
-  const mobilePreviewContent = (
-    <View style={styles.previewContent}>
-      <Image
-        source={require("../../assets/icons/outfit.png")}
-        style={styles.previewIcon}
-      />
-      <Text style={styles.previewTitle}>Dress Me</Text>
-      <Text style={styles.previewText}>
-        Create outfits by browsing{"\n"}through your clothes
-      </Text>
-      <View style={styles.previewStats}>
-        <Text style={styles.statsText}>Items: {wardrobeItems.length}</Text>
-        <Text style={styles.statsText}>Outfits: {savedOutfits.length}</Text>
-      </View>
-    </View>
-  );
 
   const fullContent = (
     <View style={styles.fullContent}>
@@ -310,7 +290,6 @@ const DressMeWindow: React.FC<DressMeWindowProps> = ({
         </Text>
 
         <View style={styles.controls}>
-          {/* Dress Mode Toggle */}
           <TouchableOpacity
             style={[
               styles.controlButton,
@@ -353,7 +332,6 @@ const DressMeWindow: React.FC<DressMeWindowProps> = ({
         </View>
       </View>
 
-      {/* Category Sections */}
       <View style={styles.categoriesLayout}>
         <View style={styles.leftColumn}>
           {renderCategorySection("tops")}
@@ -368,7 +346,6 @@ const DressMeWindow: React.FC<DressMeWindowProps> = ({
         </View>
       </View>
 
-      {/* Favorite Modal */}
       <Modal
         visible={showFavoriteModal}
         animationType="fade"
@@ -414,262 +391,21 @@ const DressMeWindow: React.FC<DressMeWindowProps> = ({
     </View>
   );
 
-  return isMobile && !isFullscreen ? mobilePreviewContent : fullContent;
+  if (isMobile && !isFullscreen) {
+    return (
+      <MobilePreview
+        icon={require("../../assets/icons/outfit.png")}
+        title="Dress Me"
+        text={"Create outfits by browsing\nthrough your clothes"}
+      >
+        <Text style={previewStatText.base}>Items: {wardrobeItems.length}</Text>
+        <Text style={previewStatText.base}>Outfits: {savedOutfits.length}</Text>
+      </MobilePreview>
+    );
+  }
+
+  return fullContent;
 };
 
-const styles = StyleSheet.create({
-  previewContent: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  previewIcon: {
-    width: 64,
-    height: 64,
-    marginBottom: 16,
-  },
-  previewTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  previewText: {
-    fontSize: 12,
-    textAlign: "center",
-    lineHeight: 16,
-    marginBottom: 16,
-    color: "#666",
-  },
-  previewStats: {
-    marginTop: 8,
-  },
-  statsText: {
-    fontSize: 10,
-    color: "#888",
-    textAlign: "center",
-  },
-  fullContent: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#c0c0c0",
-  },
-  header: {
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 12,
-  },
-  controls: {
-    flexDirection: "row",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  controlButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#c0c0c0",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    gap: 6,
-  },
-  dressModeActive: {
-    backgroundColor: "#ff66b2",
-    borderColor: "#ff3385",
-    borderTopColor: "#ff99cc",
-    borderLeftColor: "#ff99cc",
-    borderRightColor: "#e60073",
-    borderBottomColor: "#e60073",
-  },
-  controlIcon: {
-    width: 16,
-    height: 16,
-  },
-  controlButtonText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#000",
-  },
-  categoriesLayout: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 12,
-  },
-  leftColumn: {
-    flex: 2,
-    gap: 12,
-  },
-  rightColumn: {
-    flex: 1,
-    gap: 12,
-  },
-  categorySection: {
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    padding: 12,
-  },
-  categoryHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-    gap: 8,
-  },
-  categoryIcon: {
-    width: 20,
-    height: 20,
-  },
-  categoryTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
-  },
-  itemsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  arrowButton: {
-    backgroundColor: "#c0c0c0",
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  arrowText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#000",
-  },
-  itemDisplay: {
-    flex: 1,
-    alignItems: "center",
-    marginHorizontal: 3,
-  },
-  dressItemDisplay: {
-    // Additional styling for dress items if needed
-  },
-  itemImage: {
-    marginBottom: 8,
-  },
-  placeholderImage: {
-    backgroundColor: "#e0e0e0",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  placeholderText: {
-    fontSize: 12,
-    color: "#666",
-  },
-  itemsCount: {
-    fontSize: 10,
-    color: "#666",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 8,
-    width: "80%",
-    maxWidth: 400,
-    borderWidth: 2,
-    borderColor: "#c0c0c0",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-    gap: 8,
-  },
-  modalIcon: {
-    width: 20,
-    height: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  modalText: {
-    fontSize: 14,
-    marginBottom: 15,
-    textAlign: "center",
-    color: "#333",
-    lineHeight: 18,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 4,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 6,
-  },
-  cancelButton: {
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  favoriteButton: {
-    backgroundColor: "#ffcccc",
-    borderWidth: 2,
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  cancelButtonText: {
-    color: "#000",
-    fontWeight: "bold",
-  },
-  favoriteButtonText: {
-    color: "#000",
-    fontWeight: "bold",
-  },
-  buttonIcon: {
-    width: 16,
-    height: 16,
-  },
-});
 
 export default DressMeWindow;

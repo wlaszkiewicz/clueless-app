@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   Dimensions,
   Image,
@@ -17,10 +16,21 @@ import CluelessWindow from "./components/windows/CluelessWindow";
 
 import DraggableWindow from "./components/DraggableWindow";
 import DesktopIcon from "./components/DesktopIcon";
+import { styles } from "./WindowsDesktop.styles";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 const isTablet = screenWidth >= 768 && screenWidth < 1024;
+
+const WINDOW_SIZES: Record<string, { width: number; height: number }> = {
+  wardrobe: { width: 700, height: 600 },
+  outfits: { width: 1000, height: 700 },
+  gallery: { width: 650, height: 700 },
+  dressMe: { width: 650, height: 700 },
+  addItem: { width: 600, height: 700 },
+  clueless: { width: 600, height: 600 },
+};
+const WINDOW_DEFAULT_SIZE = { width: 600, height: 500 };
 
 const WindowsDesktop = () => {
   const [currentTime, setCurrentTime] = useState("");
@@ -32,7 +42,7 @@ const WindowsDesktop = () => {
   const [windowPositions, setWindowPositions] = useState<{
     [key: string]: { x: number; y: number };
   }>({});
-  const [focusedWindow, setFocusedWindow] = useState<string | null>("clueless"); // Track focused window
+  const [focusedWindow, setFocusedWindow] = useState<string | null>("clueless");
   const [showStartMenu, setShowStartMenu] = useState(false);
   const [showProgramsMenu, setShowProgramsMenu] = useState(false);
 
@@ -66,14 +76,11 @@ const WindowsDesktop = () => {
       const verticalSpacing = 20;
 
       return [
-        { x: horizontalSpacing, y: 30 }, // Row 1 - Col 1
-        { x: horizontalSpacing * 2 + iconWidth, y: 30 }, // Row 1 - Col 2
-        { x: horizontalSpacing * 3 + iconWidth * 2, y: 30 }, // Row 1 - Col 3
-        { x: horizontalSpacing, y: 30 + iconHeight + verticalSpacing }, // Row 2 - Col 1
-        {
-          x: horizontalSpacing * 2 + iconWidth,
-          y: 30 + iconHeight + verticalSpacing,
-        },
+        { x: horizontalSpacing, y: 30 },
+        { x: horizontalSpacing * 2 + iconWidth, y: 30 },
+        { x: horizontalSpacing * 3 + iconWidth * 2, y: 30 },
+        { x: horizontalSpacing, y: 30 + iconHeight + verticalSpacing },
+        { x: horizontalSpacing * 2 + iconWidth, y: 30 + iconHeight + verticalSpacing },
       ];
     } else if (isTablet) {
       return [
@@ -403,28 +410,8 @@ const WindowsDesktop = () => {
           .filter((windowId) => !minimizedWindows.includes(windowId))
           .map((windowId) => {
             const icon = desktopIcons.find((icon) => icon.id === windowId);
-            let desktopWidth = 600;
-            let desktopHeight = 500;
-
-            if (windowId === "wardrobe") {
-              desktopWidth = 700;
-              desktopHeight = 600;
-            } else if (windowId === "outfits") {
-              desktopWidth = 1000;
-              desktopHeight = 700;
-            } else if (windowId === "gallery") {
-              desktopWidth = 650;
-              desktopHeight = 700;
-            } else if (windowId === "dressMe") {
-              desktopWidth = 650;
-              desktopHeight = 700;
-            } else if (windowId === "addItem") {
-              desktopWidth = 600;
-              desktopHeight = 700;
-            } else if (windowId === "clueless") {
-              desktopWidth = 600;
-              desktopHeight = 600;
-            }
+            const { width: desktopWidth, height: desktopHeight } =
+              WINDOW_SIZES[windowId] ?? WINDOW_DEFAULT_SIZE;
             return (
               <DraggableWindow
                 key={windowId}
@@ -549,7 +536,6 @@ const WindowsDesktop = () => {
         )}
       </View>
 
-      {/* Taskbar */}
       <View style={[styles.taskbar, isMobile && styles.mobileTaskbar]}>
         <TouchableOpacity
           style={styles.startButton}
@@ -627,284 +613,5 @@ const WindowsDesktop = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#87ceeb",
-  },
-  desktop: {
-    flex: 1,
-  },
-  logoContainer: {
-    position: "absolute",
-    bottom: 120,
-    right: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoImage: {
-    width: 250,
-    height: 100,
-  },
-  startMenu: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    width: 260,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    zIndex: 1000,
-  },
-  mobileStartMenu: {
-    width: 240,
-    bottom: 0,
-  },
-  startMenuHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#D94389FF",
-  },
-  startMenuLogo: {
-    width: 32,
-    height: 32,
-    marginRight: 12,
-  },
-  startMenuTitle: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  startMenuContent: {
-    minHeight: 200,
-  },
-  mainMenu: {
-    flex: 1,
-    padding: 8,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#dfdfdf",
-  },
-  menuIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 12,
-  },
-  menuText: {
-    fontSize: 13,
-    color: "#000000",
-    fontFamily: "MS Sans Serif, System",
-    flex: 1,
-  },
-  submenuArrow: {
-    fontSize: 12,
-    color: "#444444FA",
-    fontWeight: "bold",
-    marginLeft: 8,
-  },
-  programsSubmenu: {
-    position: "absolute",
-    bottom: 100,
-    left: 260,
-    width: 200,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderColor: "#dfdfdf",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    zIndex: 1001,
-  },
-  mobileProgramsSubmenu: {
-    left: 240,
-    width: 150,
-  },
-  submenuItems: {
-    padding: 8,
-  },
-  submenuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#dfdfdf",
-  },
-  submenuIcon: {
-    width: 18,
-    height: 18,
-    marginRight: 10,
-  },
-  submenuText: {
-    fontSize: 12,
-    color: "#000000",
-    fontFamily: "MS Sans Serif, System",
-  },
-  menuSeparator: {
-    height: 1,
-    backgroundColor: "#808080",
-    marginHorizontal: 8,
-  },
-  startMenuFooter: {
-    padding: 12,
-  },
-  footerItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  footerIcon: {
-    width: 18,
-    height: 18,
-    marginRight: 10,
-  },
-  footerText: {
-    fontSize: 12,
-    color: "#000000",
-    fontFamily: "MS Sans Serif, System",
-  },
-  taskbar: {
-    height: isMobile ? 70 : 40,
-    backgroundColor: "#c0c0c0",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    borderTopWidth: 2,
-    borderTopColor: "#dfdfdf",
-    minHeight: 40,
-    paddingBottom: isMobile ? 15 : 0,
-  },
-  mobileTaskbar: {
-    height: 60,
-    paddingHorizontal: 6,
-  },
-  startButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    justifyContent: "center",
-    paddingVertical: 6,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    marginRight: 8,
-    minWidth: 60,
-  },
-  startLogo: {
-    width: 16,
-    height: 16,
-    marginRight: 6,
-  },
-  startText: {
-    fontWeight: "bold",
-    fontSize: 13,
-    color: "#000000",
-    fontFamily: "MS Sans Serif, System",
-  },
-  taskbarPrograms: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "nowrap",
-    overflow: "hidden",
-  },
-  taskbarProgram: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: isMobile ? 0 : 10,
-    paddingVertical: 2,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 1,
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-    marginRight: 6,
-    marginBottom: 2,
-    minWidth: 60,
-  },
-  mobileTaskbarProgram: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    marginRight: 4,
-    minWidth: 50,
-  },
-  minimizedProgram: {
-    opacity: 0.6,
-  },
-  taskbarIcon: {
-    width: isMobile ? 22 : 20,
-    height: 24,
-    marginRight: isMobile ? 0 : 7,
-    marginBottom: 2,
-  },
-  mobileTaskbarIcon: {
-    width: 18,
-    height: 18,
-  },
-  taskbarProgramText: {
-    fontSize: 11,
-    color: "#000000",
-    fontFamily: "MS Sans Serif, System",
-    alignItems: "center",
-  },
-  systemTray: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  trayIcons: {
-    flexDirection: "row",
-    marginRight: isMobile ? 0 : 8,
-  },
-  trayIconImage: {
-    width: 16,
-    height: 16,
-    marginLeft: 6,
-  },
-  clock: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: "#c0c0c0",
-    borderWidth: 1,
-    borderTopColor: "#808080",
-    borderLeftColor: "#808080",
-    borderRightColor: "#ffffff",
-    borderBottomColor: "#ffffff",
-    minWidth: 70,
-  },
-  mobileClock: {
-    paddingHorizontal: 8,
-    minWidth: 60,
-  },
-  clockText: {
-    fontSize: 11,
-    color: "#000000",
-    fontFamily: "MS Sans Serif, System",
-    textAlign: "center",
-  },
-  windowText: {
-    fontSize: 12,
-    color: "#000000",
-    lineHeight: 16,
-    fontFamily: "MS Sans Serif, System",
-    textAlign: "center",
-  },
-});
 
 export default WindowsDesktop;

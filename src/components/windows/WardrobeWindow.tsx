@@ -2,32 +2,57 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   Image,
   Dimensions,
   Modal,
-  LayoutRectangle,
 } from "react-native";
 import { wardrobeStorage, WardrobeItem } from "../../utils/storage";
 import Draggable from "./../Draggable";
+import MobilePreview, { previewStatText } from "./MobilePreview";
+import { resizeStyles, windowStyles, styles } from "./WardrobeWindow.styles";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const { width: screenWidth } = Dimensions.get("window");
 
 interface WardrobeWindowProps {
   isFullscreen?: boolean;
   isMobile?: boolean;
 }
 
-type FurnitureType =
-  | "wardrobe"
-  | "hanger"
-  | "shoeShelf"
-  | "jewelryBox"
-  | "floor";
+type FurnitureType = "wardrobe" | "hanger" | "shoeShelf" | "jewelryBox" | "floor";
 
 type ItemSizes = {
   [key: string]: { width: number; height: number };
+};
+
+const ITEM_SCALE_INCREASE = 1.2;
+const ITEM_SCALE_DECREASE = 0.8;
+const ITEM_MAX_SIZE_MOBILE = 120;
+const ITEM_MAX_SIZE_DESKTOP = 150;
+const ITEM_MIN_SIZE_MOBILE = 15;
+const ITEM_MIN_SIZE_DESKTOP = 20;
+
+const FURNITURE_TITLES: Partial<Record<FurnitureType, string>> = {
+  wardrobe: "Wardrobe",
+  hanger: "Hanger Rack",
+  shoeShelf: "Shoe Rack",
+  jewelryBox: "Jewelry Box",
+};
+
+const FURNITURE_BACKGROUNDS = {
+  wardrobe: require("../../assets/furniture/wardrobe-open.png"),
+  hanger: require("../../assets/furniture/hanger-rack.png"),
+  shoeShelf: require("../../assets/furniture/shoe-rack-open.png"),
+  jewelryBox: require("../../assets/furniture/jewelry-box-open.png"),
+};
+
+const FURNITURE_DEFAULT_ITEM_POSITIONS: Partial<
+  Record<FurnitureType, { x: number; y: number }>
+> = {
+  wardrobe: { x: 50, y: 50 },
+  hanger: { x: 50, y: 80 },
+  shoeShelf: { x: 50, y: 50 },
+  jewelryBox: { x: 50, y: 50 },
 };
 
 const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
@@ -64,10 +89,8 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
 
   const [floorOffset, setFloorOffset] = useState({ x: 0, y: 0 });
   const [furnitureRowOffset, setFurnitureRowOffset] = useState({ x: 0, y: 0 });
-
   const [isLayoutMeasured, setIsLayoutMeasured] = useState(false);
 
-  // Refs
   const roomLayoutRef = useRef<View>(null);
   const floorAreaRef = useRef<View>(null);
   const furnitureRowRef = useRef<View>(null);
@@ -86,28 +109,21 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
 
   const handleRoomLayout = (e: any) => {
     const { width, height } = e.nativeEvent.layout;
-    console.log("📐 Room Layout:", { width, height });
     setRoomBounds({ width, height });
   };
 
   const handleFloorLayout = (e: any) => {
     const { x, y } = e.nativeEvent.layout;
-    console.log("📐 Floor Offset:", { x, y });
     setFloorOffset({ x, y });
     setIsLayoutMeasured(true);
   };
 
   const handleFurnitureRowLayout = (e: any) => {
     if (roomLayoutRef.current) {
-      roomLayoutRef.current.measure(
-        (rx, ry, rwidth, rheight, rpageX, rpageY) => {
-          const { x, y } = e.nativeEvent.layout;
-          const offsetX = x;
-          const offsetY = y;
-          console.log("📐 FurnitureRow Offset:", { offsetX, offsetY });
-          setFurnitureRowOffset({ x: offsetX, y: offsetY });
-        }
-      );
+      roomLayoutRef.current.measure(() => {
+        const { x, y } = e.nativeEvent.layout;
+        setFurnitureRowOffset({ x, y });
+      });
     }
   };
 
@@ -119,12 +135,6 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
       ...prev,
       [furnitureType]: { x: adjustedX, y: adjustedY, width, height },
     }));
-    console.log(`📐 ${furnitureType} Bounds:`, {
-      x: adjustedX,
-      y: adjustedY,
-      width,
-      height,
-    });
   };
 
   const handleContainerLayout = (container: string, e: any) => {
@@ -138,13 +148,15 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
   const loadWardrobeItems = async () => {
     try {
       const items = await wardrobeStorage.getItems();
-      console.log("🔄 Loaded items:", items.length);
-      console.log("📐 Current floorOffset:", floorOffset);
 
       setWardrobeItems(items);
 
       const initialPositions: { [key: string]: { x: number; y: number } } = {};
       const initialSizes: ItemSizes = {};
+
+      const FLOOR_ITEM_SPACING = isMobile ? 60 : 70;
+      const FLOOR_SPAWN_Y_OFFSET = isMobile ? 50 : 200;
+      const STATUSBAR_HEIGHT = isMobile ? 40 : 0;
 
       items.forEach((item) => {
         if (item.position) {
@@ -156,9 +168,7 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
               items.find((i) => i.id === id)?.placedIn === "floor"
           ).length;
 
-          const MOBILE_SPACING = isMobile ? 60 : 70;
-          const SPAWN_Y_OFFSET = isMobile ? 50 : 200;
-          const STATUSBAR_HEIGHT = isMobile ? 40 : 0;
+          const cols = isMobile ? 4 : 6;
 
           let baseFloorY;
           if (isFullscreen && isMobile) {
@@ -166,27 +176,16 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
           } else {
             baseFloorY =
               floorOffset.y > 0
-                ? floorOffset.y + SPAWN_Y_OFFSET
+                ? floorOffset.y + FLOOR_SPAWN_Y_OFFSET
                 : isMobile
                 ? 250
                 : 350;
           }
-          initialPositions[item.id] = {
-            x: 20 + (floorItemCount % (isMobile ? 4 : 6)) * MOBILE_SPACING,
-            y:
-              baseFloorY + Math.floor(floorItemCount / (isMobile ? 4 : 6)) * 75,
-          };
 
           initialPositions[item.id] = {
-            x: 20 + (floorItemCount % (isMobile ? 4 : 6)) * MOBILE_SPACING,
-            y:
-              baseFloorY + Math.floor(floorItemCount / (isMobile ? 4 : 6)) * 75,
+            x: 20 + (floorItemCount % cols) * FLOOR_ITEM_SPACING,
+            y: baseFloorY + Math.floor(floorItemCount / cols) * 75,
           };
-
-          console.log(
-            `📍 Item ${item.id} position:`,
-            initialPositions[item.id]
-          );
         }
 
         if (item.customSize) {
@@ -238,7 +237,6 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
     let placedIn: FurnitureType = container;
 
     if (container === "floor") {
-      // MOBILE FIX: Better bounds checking for mobile
       clampedPosition = {
         x: Math.max(0, Math.min(position.x, roomBounds.width - itemWidth)),
         y: Math.max(0, Math.min(position.y, roomBounds.height - itemHeight)),
@@ -268,10 +266,7 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
         }
       );
     } else {
-      clampedPosition = {
-        x: position.x,
-        y: position.y,
-      };
+      clampedPosition = { x: position.x, y: position.y };
     }
 
     const updatedItems = wardrobeItems.map((i) =>
@@ -293,10 +288,11 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
   ) => {
     const currentSize =
       itemSizes[itemId] || getDefaultSizeForContainer("floor");
-    const scaleFactor = direction === "increase" ? 1.2 : 0.8;
+    const scaleFactor =
+      direction === "increase" ? ITEM_SCALE_INCREASE : ITEM_SCALE_DECREASE;
 
-    const maxSize = isMobile ? 120 : 150;
-    const minSize = isMobile ? 15 : 20;
+    const maxSize = isMobile ? ITEM_MAX_SIZE_MOBILE : ITEM_MAX_SIZE_DESKTOP;
+    const minSize = isMobile ? ITEM_MIN_SIZE_MOBILE : ITEM_MIN_SIZE_DESKTOP;
 
     const newSize = {
       width: Math.max(
@@ -309,10 +305,7 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
       ),
     };
 
-    setItemSizes((prev) => ({
-      ...prev,
-      [itemId]: newSize,
-    }));
+    setItemSizes((prev) => ({ ...prev, [itemId]: newSize }));
 
     const updatedItems = wardrobeItems.map((item) =>
       item.id === itemId ? { ...item, customSize: newSize } : item
@@ -332,10 +325,7 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
     }
   };
 
-  const renderResizeControls = (
-    itemId: string,
-    position: { x: number; y: number }
-  ) => {
+  const renderResizeControls = (itemId: string) => {
     if (selectedItem !== itemId) return null;
 
     return (
@@ -362,53 +352,43 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
   };
 
   const handleTrashBinPress = () => {
-    if (!isDeleteMode) {
-      setIsDeleteMode(true);
-      setSelectedItem(null);
-    } else {
-      setIsDeleteMode(false);
-    }
+    setIsDeleteMode((prev) => !prev);
+    setSelectedItem(null);
   };
 
   const handleTakeItemOut = async (itemId: string) => {
     const item = wardrobeItems.find((i) => i.id === itemId);
-    if (item) {
-      const floorItemCount = wardrobeItems.filter(
-        (i) => !i.placedIn || i.placedIn === "floor"
-      ).length;
+    if (!item) return;
 
-      const MOBILE_SPACING = isMobile ? 60 : 70;
-      const SPAWN_Y_OFFSET = isMobile ? 80 : 100;
+    const floorItemCount = wardrobeItems.filter(
+      (i) => !i.placedIn || i.placedIn === "floor"
+    ).length;
 
-      const baseFloorY =
-        floorOffset.y > 0
-          ? floorOffset.y + SPAWN_Y_OFFSET
-          : isMobile
-          ? 150
-          : 200;
+    const FLOOR_ITEM_SPACING = isMobile ? 60 : 70;
+    const SPAWN_Y_OFFSET = isMobile ? 80 : 100;
+    const cols = isMobile ? 4 : 5;
 
-      const newPosition = {
-        x: 20 + (floorItemCount % (isMobile ? 4 : 5)) * MOBILE_SPACING,
-        y: baseFloorY + Math.floor(floorItemCount / (isMobile ? 4 : 5)) * 75,
-      };
+    const baseFloorY =
+      floorOffset.y > 0
+        ? floorOffset.y + SPAWN_Y_OFFSET
+        : isMobile
+        ? 150
+        : 200;
 
-      const updatedItems = wardrobeItems.map((i) =>
-        i.id === itemId
-          ? { ...i, placedIn: "floor" as FurnitureType, position: newPosition }
-          : i
-      );
+    const newPosition = {
+      x: 20 + (floorItemCount % cols) * FLOOR_ITEM_SPACING,
+      y: baseFloorY + Math.floor(floorItemCount / cols) * 75,
+    };
 
-      setWardrobeItems(updatedItems);
-      await wardrobeStorage.updateItems(updatedItems);
-      setItemPositions((prev) => ({
-        ...prev,
-        [itemId]: newPosition,
-      }));
-    }
-  };
+    const updatedItems = wardrobeItems.map((i) =>
+      i.id === itemId
+        ? { ...i, placedIn: "floor" as FurnitureType, position: newPosition }
+        : i
+    );
 
-  const handleItemLongPress = (itemId: string) => {
-    handleTakeItemOut(itemId);
+    setWardrobeItems(updatedItems);
+    await wardrobeStorage.updateItems(updatedItems);
+    setItemPositions((prev) => ({ ...prev, [itemId]: newPosition }));
   };
 
   const getItemsForFurniture = (furnitureType: FurnitureType) => {
@@ -436,249 +416,68 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
     setItemToDelete(null);
   };
 
-  const renderWardrobeView = () => (
-    <View style={styles.furnitureView}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => setCurrentView(null)}
+  const renderFurnitureView = (furnitureType: FurnitureType) => {
+    const defaultPosition =
+      FURNITURE_DEFAULT_ITEM_POSITIONS[furnitureType] ?? { x: 50, y: 50 };
+    const backgroundSource =
+      FURNITURE_BACKGROUNDS[furnitureType as keyof typeof FURNITURE_BACKGROUNDS];
+    const backgroundStyle =
+      furnitureType === "hanger"
+        ? styles.hangerRackImage
+        : styles.furnitureBackground;
+
+    return (
+      <View style={styles.furnitureView}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => setCurrentView(null)}
+          >
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.viewTitle}>
+            {FURNITURE_TITLES[furnitureType]}
+          </Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <View
+          style={styles.furnitureInterior}
+          onLayout={(e) => handleContainerLayout(furnitureType, e)}
         >
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.viewTitle}>Wardrobe</Text>
-        <View style={styles.placeholder} />
-      </View>
+          <Image source={backgroundSource} style={backgroundStyle} />
 
-      <View
-        style={styles.wardrobeInterior}
-        onLayout={(e) => handleContainerLayout("wardrobe", e)}
-      >
-        <Image
-          source={require("../../assets/furniture/wardrobe-open.png")}
-          style={styles.furnitureBackground}
-        />
-
-        {getItemsForFurniture("wardrobe").map((item) => {
-          const currentSize =
-            itemSizes[item.id] || getDefaultSizeForContainer("wardrobe");
-          return (
-            <Draggable
-              key={item.id}
-              initialPosition={itemPositions[item.id] || { x: 50, y: 50 }}
-              onDrag={(position) =>
-                handleItemDrag(item.id, position, "wardrobe")
-              }
-            >
-              <TouchableOpacity
-                onPress={() => handleItemSelect(item.id)}
-                onLongPress={() => handleItemLongPress(item.id)}
-                delayLongPress={500}
+          {getItemsForFurniture(furnitureType).map((item) => {
+            const currentSize =
+              itemSizes[item.id] || getDefaultSizeForContainer(furnitureType);
+            const position = itemPositions[item.id] || defaultPosition;
+            return (
+              <Draggable
+                key={item.id}
+                initialPosition={position}
+                onDrag={(pos) => handleItemDrag(item.id, pos, furnitureType)}
               >
-                <Image
-                  source={{ uri: item.imageUri }}
-                  style={[
-                    styles.wardrobeItemImage,
-                    { width: currentSize.width, height: currentSize.height },
-                  ]}
-                />
-              </TouchableOpacity>
-              {renderResizeControls(
-                item.id,
-                itemPositions[item.id] || { x: 50, y: 50 }
-              )}
-            </Draggable>
-          );
-        })}
+                <TouchableOpacity
+                  onPress={() => handleItemSelect(item.id)}
+                  onLongPress={() => handleTakeItemOut(item.id)}
+                  delayLongPress={500}
+                >
+                  <Image
+                    source={{ uri: item.imageUri }}
+                    style={[
+                      styles.furnitureItemImage,
+                      { width: currentSize.width, height: currentSize.height },
+                    ]}
+                  />
+                </TouchableOpacity>
+                {renderResizeControls(item.id)}
+              </Draggable>
+            );
+          })}
+        </View>
       </View>
-    </View>
-  );
-
-  const renderHangerView = () => (
-    <View style={styles.furnitureView}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => setCurrentView(null)}
-        >
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.viewTitle}>Hanger Rack</Text>
-        <View style={styles.placeholder} />
-      </View>
-
-      <View
-        style={styles.hangerInterior}
-        onLayout={(e) => handleContainerLayout("hanger", e)}
-      >
-        <Image
-          source={require("../../assets/furniture/hanger-rack.png")}
-          style={styles.hangerRackImage}
-        />
-
-        {getItemsForFurniture("hanger").map((item) => {
-          const currentSize =
-            itemSizes[item.id] || getDefaultSizeForContainer("hanger");
-          return (
-            <Draggable
-              key={item.id}
-              initialPosition={itemPositions[item.id] || { x: 50, y: 80 }}
-              onDrag={(position) => handleItemDrag(item.id, position, "hanger")}
-            >
-              <TouchableOpacity
-                onPress={() => handleItemSelect(item.id)}
-                onLongPress={() => handleItemLongPress(item.id)}
-                delayLongPress={500}
-              >
-                <Image
-                  source={{ uri: item.imageUri }}
-                  style={[
-                    styles.hangerItemImage,
-                    { width: currentSize.width, height: currentSize.height },
-                  ]}
-                />
-              </TouchableOpacity>
-              {renderResizeControls(
-                item.id,
-                itemPositions[item.id] || { x: 50, y: 80 }
-              )}
-            </Draggable>
-          );
-        })}
-      </View>
-    </View>
-  );
-
-  const renderShoeShelfView = () => (
-    <View style={styles.furnitureView}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => setCurrentView(null)}
-        >
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.viewTitle}>Shoe Rack</Text>
-        <View style={styles.placeholder} />
-      </View>
-
-      <View
-        style={styles.shoeRackInterior}
-        onLayout={(e) => handleContainerLayout("shoeShelf", e)}
-      >
-        <Image
-          source={require("../../assets/furniture/shoe-rack-open.png")}
-          style={styles.furnitureBackground}
-        />
-
-        {getItemsForFurniture("shoeShelf").map((item) => {
-          const currentSize =
-            itemSizes[item.id] || getDefaultSizeForContainer("shoeShelf");
-          return (
-            <Draggable
-              key={item.id}
-              initialPosition={itemPositions[item.id] || { x: 50, y: 50 }}
-              onDrag={(position) =>
-                handleItemDrag(item.id, position, "shoeShelf")
-              }
-            >
-              <TouchableOpacity
-                onPress={() => handleItemSelect(item.id)}
-                onLongPress={() => handleItemLongPress(item.id)}
-                delayLongPress={500}
-              >
-                <Image
-                  source={{ uri: item.imageUri }}
-                  style={[
-                    styles.shoeItemImage,
-                    { width: currentSize.width, height: currentSize.height },
-                  ]}
-                />
-              </TouchableOpacity>
-              {renderResizeControls(
-                item.id,
-                itemPositions[item.id] || { x: 50, y: 50 }
-              )}
-            </Draggable>
-          );
-        })}
-      </View>
-    </View>
-  );
-
-  const renderJewelryBoxView = () => (
-    <View style={styles.furnitureView}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => setCurrentView(null)}
-        >
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.viewTitle}>Jewelry Box</Text>
-        <View style={styles.placeholder} />
-      </View>
-
-      <View
-        style={styles.jewelryBoxInterior}
-        onLayout={(e) => handleContainerLayout("jewelryBox", e)}
-      >
-        <Image
-          source={require("../../assets/furniture/jewelry-box-open.png")}
-          style={styles.furnitureBackground}
-        />
-
-        {getItemsForFurniture("jewelryBox").map((item) => {
-          const currentSize =
-            itemSizes[item.id] || getDefaultSizeForContainer("jewelryBox");
-          return (
-            <Draggable
-              key={item.id}
-              initialPosition={itemPositions[item.id] || { x: 50, y: 50 }}
-              onDrag={(position) =>
-                handleItemDrag(item.id, position, "jewelryBox")
-              }
-            >
-              <TouchableOpacity
-                onPress={() => handleItemSelect(item.id)}
-                onLongPress={() => handleItemLongPress(item.id)}
-                delayLongPress={500}
-              >
-                <Image
-                  source={{ uri: item.imageUri }}
-                  style={[
-                    styles.jewelryItemImage,
-                    { width: currentSize.width, height: currentSize.height },
-                  ]}
-                />
-              </TouchableOpacity>
-              {renderResizeControls(
-                item.id,
-                itemPositions[item.id] || { x: 50, y: 50 }
-              )}
-            </Draggable>
-          );
-        })}
-      </View>
-    </View>
-  );
-
-  const mobilePreviewContent = (
-    <View style={windowStyles.previewContent}>
-      <Image
-        source={require("../../assets/icons/wardrobe.png")}
-        style={windowStyles.previewIcon}
-      />
-      <Text style={windowStyles.previewTitle}>My Room</Text>
-      <Text style={windowStyles.previewText}>
-        Organize your clothes in furniture{"\n"}Click furniture to see inside!
-      </Text>
-      <View style={windowStyles.previewStats}>
-        <Text style={windowStyles.statsText}>
-          Items: {wardrobeItems.length}
-        </Text>
-      </View>
-    </View>
-  );
+    );
+  };
 
   const fullContent = (
     <View style={windowStyles.fullContent}>
@@ -691,12 +490,7 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
       </Text>
 
       {currentView ? (
-        <>
-          {currentView === "wardrobe" && renderWardrobeView()}
-          {currentView === "hanger" && renderHangerView()}
-          {currentView === "shoeShelf" && renderShoeShelfView()}
-          {currentView === "jewelryBox" && renderJewelryBoxView()}
-        </>
+        renderFurnitureView(currentView)
       ) : (
         <View
           style={windowStyles.roomLayout}
@@ -830,10 +624,7 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
                     ]}
                   />
                 </TouchableOpacity>
-                {renderResizeControls(
-                  item.id,
-                  itemPositions[item.id] || { x: 50, y: 150 }
-                )}
+                {renderResizeControls(item.id)}
               </Draggable>
             );
           })}
@@ -876,378 +667,22 @@ const WardrobeWindow: React.FC<WardrobeWindowProps> = ({
     </View>
   );
 
-  return isMobile && !isFullscreen ? mobilePreviewContent : fullContent;
+  if (isMobile && !isFullscreen) {
+    return (
+      <MobilePreview
+        icon={require("../../assets/icons/wardrobe.png")}
+        title="My Room"
+        text={"Organize your clothes in furniture\nClick furniture to see inside!"}
+      >
+        <Text style={previewStatText.base}>Items: {wardrobeItems.length}</Text>
+      </MobilePreview>
+    );
+  }
+
+  return fullContent;
 };
 
-const resizeStyles = StyleSheet.create({
-  resizeControls: {
-    position: "absolute",
-    top: -30,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  },
-  resizeButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 4,
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  increaseButton: {
-    backgroundColor: "#4CAF50",
-  },
-  decreaseButton: {
-    backgroundColor: "#f44336",
-  },
-  resizeButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 14,
-    lineHeight: 18,
-  },
-});
 
-const windowStyles = StyleSheet.create({
-  previewContent: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  previewIcon: {
-    width: 64,
-    height: 64,
-    marginBottom: 16,
-  },
-  previewTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  previewText: {
-    fontSize: 12,
-    textAlign: "center",
-    lineHeight: 16,
-    marginBottom: 16,
-    color: "#666",
-  },
-  previewStats: {
-    marginTop: 8,
-  },
-  statsText: {
-    fontSize: 10,
-    color: "#888",
-  },
-  fullContent: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "transparent",
-  },
-  fullSubtitle: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  roomLayout: {
-    flex: 1,
-    position: "relative",
-  },
-  furnitureRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    marginBottom: 10,
-    height: 150,
-    paddingHorizontal: 10,
-    marginTop: 10,
-  },
-  furnitureRowMobile: {
-    height: 120,
-    marginBottom: 5,
-    paddingHorizontal: 5,
-  },
-  furnitureImage: {
-    resizeMode: "contain",
-  },
-  wardrobeSize: {
-    width: 180,
-    height: 160,
-  },
-  wardrobeSizeMobile: {
-    width: 140,
-    height: 120,
-  },
-  jewelryBoxSize: {
-    width: 100,
-    height: 80,
-  },
-  jewelryBoxSizeMobile: {
-    width: 80,
-    height: 60,
-  },
-  hangerSize: {
-    width: 130,
-    height: 100,
-  },
-  hangerSizeMobile: {
-    width: 100,
-    height: 80,
-  },
-  shoeShelfSize: {
-    width: 90,
-    height: 70,
-  },
-  shoeShelfSizeMobile: {
-    width: 70,
-    height: 50,
-  },
-  floorArea: {
-    flex: 1,
-    backgroundColor: "transparent",
-    marginTop: 10,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "#e0e0e0",
-    minHeight: 300,
-  },
-  floorAreaMobile: {
-    minHeight: 250,
-    marginTop: 5,
-  },
-  floorTexture: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: "100%",
-    height: "100%",
-    opacity: 0.3,
-  },
-  draggableItem: {
-    position: "absolute",
-    alignItems: "center",
-    padding: 0,
-    backgroundColor: "transparent",
-    borderRadius: 0,
-    borderWidth: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
-    zIndex: 10,
-  },
-  itemImage: {
-    borderRadius: 0,
-    backgroundColor: "transparent",
-  },
-  emptyFloor: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#666",
-    marginBottom: 4,
-  },
-  emptySubtext: {
-    fontSize: 12,
-    color: "#666",
-    textAlign: "center",
-  },
-  trashBin: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: "transparent",
-    borderRadius: 0,
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 100,
-  },
-  trashBinIcon: {
-    width: 40,
-    height: 40,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 8,
-    width: "80%",
-    maxWidth: 300,
-    borderWidth: 2,
-    borderColor: "#c0c0c0",
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  modalContentMobile: {
-    width: "90%",
-    marginHorizontal: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  modalText: {
-    fontSize: 14,
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#333",
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 4,
-    alignItems: "center",
-  },
-  cancelButton: {
-    backgroundColor: "#c0c0c0",
-    borderWidth: 2,
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  deleteButton: {
-    backgroundColor: "#ff4444",
-    borderWidth: 2,
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#cc0000",
-    borderBottomColor: "#cc0000",
-  },
-  cancelButtonText: {
-    color: "#000",
-    fontWeight: "bold",
-  },
-  deleteButtonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-});
 
-const styles = StyleSheet.create({
-  furnitureView: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "transparent",
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "#ccc",
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  backButton: {
-    backgroundColor: "#c0c0c0",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderTopColor: "#ffffff",
-    borderLeftColor: "#ffffff",
-    borderRightColor: "#808080",
-    borderBottomColor: "#808080",
-  },
-  backButtonText: {
-    color: "#000",
-    fontWeight: "bold",
-    fontSize: 12,
-  },
-  viewTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: "#333",
-  },
-  placeholder: {
-    width: 60,
-  },
-  furnitureBackground: {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
-    resizeMode: "contain",
-  },
-  wardrobeInterior: {
-    flex: 1,
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 200,
-  },
-  shoeRackInterior: {
-    flex: 1,
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 200,
-  },
-  jewelryBoxInterior: {
-    flex: 1,
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 200,
-  },
-  hangerInterior: {
-    flex: 1,
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 200,
-  },
-  hangerRackImage: {
-    width: "100%",
-    height: "100%",
-    position: "relative",
-    resizeMode: "contain",
-  },
-  wardrobeItemImage: {
-    backgroundColor: "transparent",
-  },
-  shoeItemImage: {
-    backgroundColor: "transparent",
-  },
-  jewelryItemImage: {
-    backgroundColor: "transparent",
-  },
-  hangerItemImage: {
-    backgroundColor: "transparent",
-  },
-});
 
 export default WardrobeWindow;

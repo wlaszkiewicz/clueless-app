@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
-import { PanResponder, View, StyleSheet } from "react-native";
+import { PanResponder, View } from "react-native";
 import { useEffect } from "react";
+import { styles } from "./Draggable.styles";
 
 interface DraggableProps {
   children: React.ReactNode;
@@ -86,11 +87,5 @@ const Draggable: React.FC<DraggableProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  draggable: {
-    position: "absolute",
-    userSelect: "none",
-  },
-});
 
 export default Draggable;
